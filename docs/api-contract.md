@@ -39,6 +39,17 @@ Explicitly out of scope for v1:
 - hidden retries or hidden delays
 - compatibility with the legacy Atlas API shape
 
+Primary C entry points:
+
+- `ezo_device_init()`
+- `ezo_send_command()`
+- `ezo_send_command_with_float()`
+- `ezo_send_read()`
+- `ezo_send_read_with_temp_comp()`
+- `ezo_read_response()`
+- `ezo_read_response_raw()`
+- `ezo_parse_double()`
+
 ## Transport Contract
 
 The core depends on one injected transport callback:
@@ -97,6 +108,8 @@ Rules:
 4. Raw buffers are limited by `EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN`.
 5. Oversized payloads return `EZO_ERR_BUFFER_TOO_SMALL`.
 
+Callers choose the text or raw path explicitly. The library does not infer payload type.
+
 ## Timing Semantics
 
 The core never sleeps.
@@ -120,3 +133,13 @@ These are conservative defaults derived from `_reference/`. They are hints, not 
 - optional sign
 - optional fractional part
 - no exponent syntax
+
+## Call Pattern
+
+Typical command flow:
+
+1. initialize a device with a transport callback and context
+2. send a command and read the timing hint
+3. wait outside the library
+4. read either a text or raw response
+5. inspect device status separately from the library result

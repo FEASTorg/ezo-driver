@@ -23,15 +23,15 @@ Current implementation includes:
 
 ## Layout
 
-- `src/`: canonical library source tree and public headers
+- `src/`: canonical library root for public headers and implementation
 - `examples/`: focused Arduino and Linux examples
 - `tests/`: host-side tests and fakes
-- `docs/`: tracked implementation docs
+- `docs/`: tracked handoff docs
 - `_reference/`: legacy reference material only
 
-## Build And Validation
+## Build
 
-Host validation uses CMake:
+Host builds and tests use CMake:
 
 ```sh
 cmake -S . -B build -DEZO_BUILD_TESTS=ON -DEZO_BUILD_LINUX_ADAPTER=ON
@@ -39,25 +39,50 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Arduino/PlatformIO validation is compile-only in CI.
+## Validation
 
-Arduino IDE validation remains manual by design.
+- host CI builds and runs C and C++ tests
+- Linux adapter behavior is covered by host-side tests
+- PlatformIO CI compile-checks Arduino examples for `uno`, `nanoatmega328`, and `esp32dev`
+- Arduino IDE validation is manual by design
 
-## Arduino And PlatformIO
+## Packaging
 
-Arduino-facing packaging metadata is provided via:
+- `library.properties`: Arduino tooling metadata
+- `library.json`: PlatformIO metadata and Arduino-specific source filtering
 
-- [`library.properties`](./library.properties)
-- [`library.json`](./library.json)
+The PlatformIO manifest excludes `src/linux/` from Arduino library builds so host-only code is not compiled for embedded targets.
 
-Examples:
+## Examples
 
-- [`examples/arduino_smoke/arduino_smoke.ino`](./examples/arduino_smoke/arduino_smoke.ino)
-- [`examples/arduino_read/arduino_read.ino`](./examples/arduino_read/arduino_read.ino)
+- [`examples/arduino_smoke/arduino_smoke.ino`](./examples/arduino_smoke/arduino_smoke.ino): minimal C API smoke path
+- [`examples/arduino_read/arduino_read.ino`](./examples/arduino_read/arduino_read.ino): C++ wrapper example
+- [`examples/linux_read.c`](./examples/linux_read.c): minimal Linux transport example
+
+## Entry Points
+
+Primary public headers:
+
+- [`src/ezo_i2c.h`](./src/ezo_i2c.h)
+- [`src/ezo_i2c.hpp`](./src/ezo_i2c.hpp)
+
+Primary implementation files:
+
+- [`src/ezo_i2c.c`](./src/ezo_i2c.c)
+- [`src/arduino/ezo_arduino_wire.cpp`](./src/arduino/ezo_arduino_wire.cpp)
+- [`src/linux/ezo_linux_i2c.c`](./src/linux/ezo_linux_i2c.c)
 
 ## Docs
 
-Tracked implementation docs:
+- [`docs/architecture.md`](./docs/architecture.md): structure, boundaries, packaging, validation
+- [`docs/api-contract.md`](./docs/api-contract.md): behavioral contract for the public API
+- [`CHANGELOG.md`](./CHANGELOG.md): tracked change history
 
-- [`docs/architecture.md`](./docs/architecture.md)
-- [`docs/api-contract.md`](./docs/api-contract.md)
+## Scope Notes
+
+Intentionally out of scope for v1:
+
+- typed pH/EC/RTD helper APIs
+- async/state-machine behavior
+- hidden retries or hidden delays
+- compatibility with the legacy Atlas API shape

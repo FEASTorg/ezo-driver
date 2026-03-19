@@ -1,6 +1,6 @@
 # Architecture
 
-## Shape
+## Repo Shape
 
 The repo is organized around one canonical library root: `src/`.
 
@@ -28,16 +28,27 @@ Everything else is supporting material:
 5. The core does not sleep internally.
 6. Callers own buffers and timing behavior.
 
-## Transport Model
+## Layers
+
+1. Core
+   - protocol formatting
+   - response decoding
+   - numeric helpers
+   - timing hints
+
+2. C++ wrapper
+   - header-only convenience layer over the C core
+   - no separate protocol logic
+
+3. Platform adapters
+   - convert platform I2C APIs into the transport callback contract
+   - current adapters: Arduino `TwoWire`, Linux file descriptor transport
+
+## Transport Boundary
 
 The core talks to the outside world through a single injected transport callback plus caller-owned context.
 
 That boundary is the main portability seam.
-
-Current adapters:
-
-- Arduino `TwoWire`
-- Linux `i2c-dev` style file descriptor transport
 
 ## API Direction
 
@@ -64,7 +75,7 @@ Explicit non-goals for v1:
 Validation is split across:
 
 - host-side C and C++ tests against fake transports
-- Linux adapter compile coverage
+- Linux adapter behavior tests on host builds
 - PlatformIO Arduino compile coverage
 - manual Arduino IDE validation
 
@@ -78,3 +89,16 @@ Packaging/distribution surfaces:
 
 - `library.properties` for Arduino tooling
 - `library.json` for PlatformIO
+
+PlatformIO-specific rule:
+
+- `library.json` excludes `src/linux/` from Arduino builds so Linux-only code is not compiled for embedded targets
+
+## Handoff Notes
+
+A new developer should treat these files as the main entry points:
+
+- `README.md` for first-contact orientation
+- `src/ezo_i2c/ezo_i2c.h` for the C API
+- `src/ezo_i2c/ezo_i2c.hpp` for the C++ wrapper
+- `src/ezo_i2c.c` for core behavior
