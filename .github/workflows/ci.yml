@@ -35,6 +35,10 @@ jobs:
             sketch: examples/arduino_smoke/arduino_smoke.ino
           - board: uno
             sketch: examples/arduino_read/arduino_read.ino
+          - board: nanoatmega328
+            sketch: examples/arduino_smoke/arduino_smoke.ino
+          - board: nanoatmega328
+            sketch: examples/arduino_read/arduino_read.ino
           - board: esp32dev
             sketch: examples/arduino_smoke/arduino_smoke.ino
           - board: esp32dev
