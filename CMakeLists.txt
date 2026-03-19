@@ -7,6 +7,8 @@ project(
   LANGUAGES C CXX
 )
 
+include(CTest)
+
 option(EZO_BUILD_TESTS "Build unit tests" OFF)
 option(EZO_BUILD_EXAMPLES "Build examples" OFF)
 option(EZO_BUILD_ARDUINO_ADAPTER "Build Arduino adapter sources" OFF)
@@ -37,6 +39,11 @@ if(EZO_BUILD_TESTS)
   )
 
   target_link_libraries(ezo_i2c_core_tests PRIVATE ezo_i2c_core)
+
+  add_test(
+    NAME ezo_i2c_core_tests
+    COMMAND ezo_i2c_core_tests
+  )
 endif()
 
 if(EZO_BUILD_LINUX_ADAPTER)
