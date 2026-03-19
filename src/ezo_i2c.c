@@ -5,7 +5,8 @@
 #include <string.h>
 
 enum {
-  EZO_I2C_MAX_RAW_RESPONSE_LEN = EZO_I2C_MAX_TEXT_RESPONSE_LEN + 1,
+  EZO_I2C_MAX_TEXT_FRAME_LEN = EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN + 1,
+  EZO_I2C_MAX_RAW_FRAME_LEN = EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN + 2,
   EZO_I2C_MAX_FORMAT_DECIMALS = 9
 };
 
@@ -190,6 +191,49 @@ static ezo_result_t ezo_validate_command_kind(ezo_command_kind_t kind) {
   }
 }
 
+static ezo_result_t ezo_read_response_frame(ezo_i2c_device_t *device,
+                                            uint8_t *frame,
+                                            size_t frame_len,
+                                            size_t *rx_received,
+                                            ezo_device_status_t *device_status) {
+  ezo_result_t result = EZO_OK;
+  ezo_device_status_t status = EZO_STATUS_UNKNOWN;
+
+  if (frame == NULL || frame_len == 0 || rx_received == NULL || device_status == NULL) {
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
+
+  result = device->transport->write_then_read(device->transport_context,
+                                              device->address,
+                                              NULL,
+                                              0,
+                                              frame,
+                                              frame_len,
+                                              rx_received);
+  if (result != EZO_OK) {
+    device->last_device_status = (uint8_t)EZO_STATUS_UNKNOWN;
+    *device_status = EZO_STATUS_UNKNOWN;
+    *rx_received = 0;
+    return result;
+  }
+
+  if (*rx_received == 0) {
+    device->last_device_status = (uint8_t)EZO_STATUS_UNKNOWN;
+    *device_status = EZO_STATUS_UNKNOWN;
+    return EZO_ERR_PROTOCOL;
+  }
+
+  status = ezo_map_status_byte(frame[0]);
+  device->last_device_status = (uint8_t)status;
+  *device_status = status;
+
+  if (status == EZO_STATUS_UNKNOWN) {
+    return EZO_ERR_PROTOCOL;
+  }
+
+  return EZO_OK;
+}
+
 ezo_result_t ezo_device_init(ezo_i2c_device_t *device,
                              uint8_t address,
                              const ezo_i2c_transport_t *transport,
@@ -334,15 +378,69 @@ ezo_result_t ezo_send_read_with_temp_comp(ezo_i2c_device_t *device,
                                      timing_hint);
 }
 
+ezo_result_t ezo_read_response_raw(ezo_i2c_device_t *device,
+                                   uint8_t *buffer,
+                                   size_t buffer_len,
+                                   size_t *response_len,
+                                   ezo_device_status_t *device_status) {
+  uint8_t frame[EZO_I2C_MAX_RAW_FRAME_LEN];
+  size_t frame_len = 0;
+  size_t rx_received = 0;
+  size_t payload_len = 0;
+  ezo_result_t result = EZO_OK;
+
+  result = ezo_validate_device(device);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  if (buffer == NULL || response_len == NULL || device_status == NULL) {
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
+
+  if (buffer_len == 0 || buffer_len > EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN) {
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
+
+  memset(frame, 0, sizeof(frame));
+  memset(buffer, 0, buffer_len);
+  *response_len = 0;
+
+  frame_len = buffer_len + 2;
+  if (frame_len > sizeof(frame)) {
+    frame_len = sizeof(frame);
+  }
+
+  result = ezo_read_response_frame(device, frame, frame_len, &rx_received, device_status);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  if (rx_received > 1) {
+    payload_len = rx_received - 1;
+  }
+
+  if (payload_len > buffer_len) {
+    return EZO_ERR_BUFFER_TOO_SMALL;
+  }
+
+  if (payload_len > 0) {
+    memcpy(buffer, &frame[1], payload_len);
+  }
+
+  *response_len = payload_len;
+  return EZO_OK;
+}
+
 ezo_result_t ezo_read_response(ezo_i2c_device_t *device,
                                char *buffer,
                                size_t buffer_len,
                                size_t *response_len,
                                ezo_device_status_t *device_status) {
-  size_t raw_len = 0;
+  uint8_t frame[EZO_I2C_MAX_TEXT_FRAME_LEN];
+  size_t frame_len = 0;
   size_t rx_received = 0;
   ezo_result_t result = EZO_OK;
-  ezo_device_status_t status = EZO_STATUS_UNKNOWN;
   size_t payload_available = 0;
   size_t payload_len = 0;
   size_t i = 0;
@@ -360,68 +458,37 @@ ezo_result_t ezo_read_response(ezo_i2c_device_t *device,
     return EZO_ERR_INVALID_ARGUMENT;
   }
 
-  raw_len = buffer_len + 1;
-  {
-    uint8_t raw[EZO_I2C_MAX_RAW_RESPONSE_LEN];
+  frame_len = buffer_len + 1;
+  memset(frame, 0, frame_len);
+  memset(buffer, 0, buffer_len);
+  *response_len = 0;
 
-    memset(raw, 0, raw_len);
-    memset(buffer, 0, buffer_len);
-
-    result = device->transport->write_then_read(device->transport_context,
-                                                device->address,
-                                                NULL,
-                                                0,
-                                                raw,
-                                                raw_len,
-                                                &rx_received);
-    if (result != EZO_OK) {
-      device->last_device_status = (uint8_t)EZO_STATUS_UNKNOWN;
-      *device_status = EZO_STATUS_UNKNOWN;
-      *response_len = 0;
-      return result;
-    }
-
-    if (rx_received == 0) {
-      device->last_device_status = (uint8_t)EZO_STATUS_UNKNOWN;
-      *device_status = EZO_STATUS_UNKNOWN;
-      *response_len = 0;
-      return EZO_ERR_PROTOCOL;
-    }
-
-    status = ezo_map_status_byte(raw[0]);
-    device->last_device_status = (uint8_t)status;
-    *device_status = status;
-
-    if (status == EZO_STATUS_UNKNOWN) {
-      *response_len = 0;
-      return EZO_ERR_PROTOCOL;
-    }
-
-    if (rx_received > 1) {
-      payload_available = rx_received - 1;
-    }
-
-    for (i = 0; i < payload_available; ++i) {
-      if (raw[i + 1] == 0) {
-        break;
-      }
-    }
-    payload_len = i;
-
-    if (payload_len >= buffer_len) {
-      *response_len = 0;
-      return EZO_ERR_BUFFER_TOO_SMALL;
-    }
-
-    if (payload_len > 0) {
-      memcpy(buffer, &raw[1], payload_len);
-    }
-
-    buffer[payload_len] = '\0';
-
-    *response_len = payload_len;
+  result = ezo_read_response_frame(device, frame, frame_len, &rx_received, device_status);
+  if (result != EZO_OK) {
+    return result;
   }
 
+  if (rx_received > 1) {
+    payload_available = rx_received - 1;
+  }
+
+  for (i = 0; i < payload_available; ++i) {
+    if (frame[i + 1] == 0) {
+      break;
+    }
+  }
+  payload_len = i;
+
+  if (payload_len >= buffer_len) {
+    return EZO_ERR_BUFFER_TOO_SMALL;
+  }
+
+  if (payload_len > 0) {
+    memcpy(buffer, &frame[1], payload_len);
+  }
+
+  buffer[payload_len] = '\0';
+  *response_len = payload_len;
   return EZO_OK;
 }
 

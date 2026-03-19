@@ -15,7 +15,7 @@ This repository is a rewrite informed by Atlas Scientific's original `Ezo_i2c_li
 Current implementation includes:
 
 - generic EZO command send/read flow
-- text response decoding and numeric parsing
+- text and raw response decoding with numeric parsing helpers
 - Arduino and Linux transport adapters
 - Arduino examples for both the C and C++ surfaces
 - CMake host build/test flow

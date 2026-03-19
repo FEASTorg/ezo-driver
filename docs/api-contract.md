@@ -33,7 +33,8 @@ It does not define:
 ## Public Types
 
 ```c
-#define EZO_I2C_MAX_TEXT_RESPONSE_LEN 255
+#define EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN 255
+#define EZO_I2C_MAX_TEXT_RESPONSE_LEN EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN
 
 typedef enum {
   EZO_OK = 0,
@@ -117,6 +118,12 @@ ezo_result_t ezo_send_read_with_temp_comp(ezo_i2c_device_t *device,
                                           uint8_t decimals,
                                           ezo_timing_hint_t *timing_hint);
 
+ezo_result_t ezo_read_response_raw(ezo_i2c_device_t *device,
+                                   uint8_t *buffer,
+                                   size_t buffer_len,
+                                   size_t *response_len,
+                                   ezo_device_status_t *device_status);
+
 ezo_result_t ezo_read_response(ezo_i2c_device_t *device,
                                char *buffer,
                                size_t buffer_len,
@@ -193,6 +200,16 @@ Rules:
 4. If the payload would exactly fill the buffer with no room for the null terminator, the result is `EZO_ERR_BUFFER_TOO_SMALL`.
 5. `buffer_len` must be at most `EZO_I2C_MAX_TEXT_RESPONSE_LEN`.
 
+`ezo_read_response_raw()` copies raw payload bytes after the device status byte.
+
+Rules:
+
+1. Raw payload bytes are not null-terminated or interpreted as text.
+2. `response_len` reports the raw payload byte count.
+3. `buffer_len` must be at most `EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN`.
+4. Embedded zero bytes are preserved.
+5. If the device returns more payload bytes than fit in the caller buffer, the result is `EZO_ERR_BUFFER_TOO_SMALL`.
+
 ## Timing Semantics
 
 The core never sleeps.
@@ -250,6 +267,16 @@ if (status == EZO_STATUS_SUCCESS) {
 }
 ```
 
+### Raw payload read
+
+```c
+uint8_t response[32];
+
+ezo_send_command(&device, "i", EZO_COMMAND_GENERIC, &hint);
+/* caller waits hint.wait_ms */
+ezo_read_response_raw(&device, response, sizeof(response), &response_len, &status);
+```
+
 ## Explicit Non-Goals
 
 - preserve legacy `issued_read` / `NOT_READ_CMD` behavior
@@ -257,6 +284,6 @@ if (status == EZO_STATUS_SUCCESS) {
 - add typed helpers in v1
 - hide waiting or retries inside the core
 
-## One Deferred Question
+## Remaining Deferred Questions
 
-The only implementation-adjacent open question is whether a raw-byte response variant should be added later alongside the current text-oriented `ezo_read_response()` path.
+There is no immediate contract blocker after the raw response path was added. Any future API additions should be justified by a concrete use case rather than convenience alone.

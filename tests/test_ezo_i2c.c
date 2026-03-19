@@ -109,6 +109,70 @@ static void test_read_response_success_and_parse(void) {
   assert(value > 7.11 && value < 7.13);
 }
 
+static void test_read_response_raw_preserves_embedded_zero_bytes(void) {
+  static const uint8_t response[] = {1, 'A', 0, 'B', 0x7f};
+  ezo_fake_transport_t fake;
+  ezo_i2c_device_t device;
+  ezo_device_status_t status = EZO_STATUS_UNKNOWN;
+  ezo_result_t result;
+  uint8_t buffer[8];
+  size_t response_len = 0;
+
+  ezo_fake_transport_init(&fake);
+  ezo_fake_transport_set_response(&fake, response, sizeof(response));
+  result = ezo_device_init(&device, 100, ezo_fake_transport_vtable(), &fake);
+  assert(result == EZO_OK);
+
+  result = ezo_read_response_raw(&device, buffer, sizeof(buffer), &response_len, &status);
+  assert(result == EZO_OK);
+  assert(status == EZO_STATUS_SUCCESS);
+  assert(response_len == 4);
+  assert(buffer[0] == 'A');
+  assert(buffer[1] == 0);
+  assert(buffer[2] == 'B');
+  assert(buffer[3] == 0x7f);
+}
+
+static void test_read_response_raw_detects_buffer_too_small(void) {
+  static const uint8_t response[] = {1, '1', '2', '3', '4'};
+  ezo_fake_transport_t fake;
+  ezo_i2c_device_t device;
+  ezo_device_status_t status = EZO_STATUS_UNKNOWN;
+  ezo_result_t result;
+  uint8_t buffer[3];
+  size_t response_len = 0;
+
+  ezo_fake_transport_init(&fake);
+  ezo_fake_transport_set_response(&fake, response, sizeof(response));
+  result = ezo_device_init(&device, 100, ezo_fake_transport_vtable(), &fake);
+  assert(result == EZO_OK);
+
+  result = ezo_read_response_raw(&device, buffer, sizeof(buffer), &response_len, &status);
+  assert(result == EZO_ERR_BUFFER_TOO_SMALL);
+  assert(status == EZO_STATUS_SUCCESS);
+  assert(response_len == 0);
+}
+
+static void test_read_response_raw_not_ready_is_status_not_error(void) {
+  static const uint8_t response[] = {254};
+  ezo_fake_transport_t fake;
+  ezo_i2c_device_t device;
+  ezo_device_status_t status = EZO_STATUS_UNKNOWN;
+  ezo_result_t result;
+  uint8_t buffer[4];
+  size_t response_len = 0;
+
+  ezo_fake_transport_init(&fake);
+  ezo_fake_transport_set_response(&fake, response, sizeof(response));
+  result = ezo_device_init(&device, 100, ezo_fake_transport_vtable(), &fake);
+  assert(result == EZO_OK);
+
+  result = ezo_read_response_raw(&device, buffer, sizeof(buffer), &response_len, &status);
+  assert(result == EZO_OK);
+  assert(status == EZO_STATUS_NOT_READY);
+  assert(response_len == 0);
+}
+
 static void test_read_response_not_ready_is_status_not_error(void) {
   static const uint8_t response[] = {254, 0};
   ezo_fake_transport_t fake;
@@ -249,6 +313,9 @@ int main(void) {
   test_send_command_with_float_rounds_negative_values();
   test_send_command_with_float_rejects_excess_precision();
   test_read_response_success_and_parse();
+  test_read_response_raw_preserves_embedded_zero_bytes();
+  test_read_response_raw_detects_buffer_too_small();
+  test_read_response_raw_not_ready_is_status_not_error();
   test_read_response_not_ready_is_status_not_error();
   test_read_response_no_data_is_status_not_error();
   test_read_response_unknown_status_is_protocol_error();

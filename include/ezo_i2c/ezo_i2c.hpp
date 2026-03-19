@@ -63,6 +63,13 @@ public:
     return ezo_send_read_with_temp_comp(&device_, temperature_c, decimals, timing_hint);
   }
 
+  Result read_response_raw(uint8_t *buffer,
+                           size_t buffer_len,
+                           size_t *response_len,
+                           DeviceStatus *device_status) {
+    return ezo_read_response_raw(&device_, buffer, buffer_len, response_len, device_status);
+  }
+
   Result read_response(char *buffer,
                        size_t buffer_len,
                        size_t *response_len,

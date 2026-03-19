@@ -8,7 +8,8 @@
 extern "C" {
 #endif
 
-#define EZO_I2C_MAX_TEXT_RESPONSE_LEN 255
+#define EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN 255
+#define EZO_I2C_MAX_TEXT_RESPONSE_LEN EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN
 
 typedef enum {
   EZO_OK = 0,
@@ -86,6 +87,12 @@ ezo_result_t ezo_send_read_with_temp_comp(ezo_i2c_device_t *device,
                                           double temperature_c,
                                           uint8_t decimals,
                                           ezo_timing_hint_t *timing_hint);
+
+ezo_result_t ezo_read_response_raw(ezo_i2c_device_t *device,
+                                   uint8_t *buffer,
+                                   size_t buffer_len,
+                                   size_t *response_len,
+                                   ezo_device_status_t *device_status);
 
 ezo_result_t ezo_read_response(ezo_i2c_device_t *device,
                                char *buffer,
