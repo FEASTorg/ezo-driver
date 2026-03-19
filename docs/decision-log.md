@@ -231,7 +231,7 @@ Decision:
 
 - The main project layout and build flow will be CMake-first.
 - Arduino packaging metadata will be layered on top.
-- PlatformIO support is planned and example parity should be maintained when examples are added.
+- PlatformIO support is included and example parity should be maintained when examples are added.
 
 Consequences:
 
@@ -308,7 +308,7 @@ Consequences:
 - v1 scope: focused driver with utilities/examples outside the core API
 - Typed helpers in v1: no
 - First complete milestone: Arduino and Linux
-- Build approach: CMake-first with Arduino metadata and planned PlatformIO support
+- Build approach: CMake-first with Arduino metadata and PlatformIO support
 - Public numeric type: `double`
 - Transport callback shape: single write/read transaction primitive
 - Legacy read-issued compatibility state: not preserved

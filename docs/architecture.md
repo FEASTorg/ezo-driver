@@ -205,7 +205,7 @@ Primary development flow:
 Additional distribution surfaces:
 
 - Arduino library metadata
-- planned PlatformIO support
+- PlatformIO library manifest and CI compile validation
 
 The build layout should support:
 

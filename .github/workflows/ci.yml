@@ -24,3 +24,43 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
+
+  platformio-arduino-compile:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - board: uno
+            sketch: examples/arduino_smoke/arduino_smoke.ino
+          - board: uno
+            sketch: examples/arduino_read/arduino_read.ino
+          - board: esp32dev
+            sketch: examples/arduino_smoke/arduino_smoke.ino
+          - board: esp32dev
+            sketch: examples/arduino_read/arduino_read.ino
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio/.cache
+            ~/.platformio/packages
+          key: ${{ runner.os }}-platformio-${{ matrix.board }}
+
+      - name: Install PlatformIO
+        run: python -m pip install --upgrade platformio
+
+      - name: Compile Arduino library example
+        env:
+          PLATFORMIO_CI_SRC: ${{ matrix.sketch }}
+        run: pio ci --lib="." --board="${{ matrix.board }}"

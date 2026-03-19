@@ -89,7 +89,7 @@ endif()
 
 if(EZO_BUILD_ARDUINO_ADAPTER)
   add_library(ezo_i2c_arduino_adapter STATIC
-    adapters/arduino/ezo_arduino_wire.cpp
+    src/arduino/ezo_arduino_wire.cpp
   )
 
   target_include_directories(ezo_i2c_arduino_adapter
