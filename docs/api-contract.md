@@ -1,289 +1,122 @@
 # API Contract
 
-Status: Accepted for implementation
+Status: accepted
 
-## Scope
+Source of truth:
 
-This document defines the implementation-facing contract for the v1 C core.
+- public C API: `src/ezo_i2c/ezo_i2c.h`
+- public C++ API: `src/ezo_i2c/ezo_i2c.hpp`
 
-It covers:
-
-- public C API shape
-- transport contract
-- error and status semantics
-- timing semantics
-- canonical call flow
-
-It does not define:
-
-- typed device helpers
-- async behavior
-- Arduino- or Linux-specific adapter APIs
+This document only records the contract decisions that matter at the repo level. It does not duplicate every declaration from the headers.
 
 ## Core Rules
 
 1. The core is C99.
 2. The core is synchronous.
-3. The core does not allocate dynamically.
-4. The core does not sleep internally.
-5. The core does not depend on Arduino or Linux SDK types.
-6. Library errors and device status remain separate.
-7. The core uses fixed internal buffers, not VLAs or heap allocation.
+3. The core is transport-agnostic.
+4. The core does not allocate dynamically.
+5. The core does not sleep internally.
+6. Callers own timing and buffers.
+7. Library results and device status are separate.
 
-## Public Types
+## Public Surface
 
-```c
-#define EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN 255
-#define EZO_I2C_MAX_TEXT_RESPONSE_LEN EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN
+The v1 public surface provides:
 
-typedef enum {
-  EZO_OK = 0,
-  EZO_ERR_INVALID_ARGUMENT,
-  EZO_ERR_BUFFER_TOO_SMALL,
-  EZO_ERR_TRANSPORT,
-  EZO_ERR_PROTOCOL,
-  EZO_ERR_PARSE,
-  EZO_ERR_STATE
-} ezo_result_t;
+- device init and address accessors
+- timing hints by command kind
+- generic command send helpers
+- read helpers for plain read and read-with-temperature-compensation
+- text response reads
+- raw response reads
+- decimal parsing helper
+- thin C++ wrapper over the same C surface
 
-typedef enum {
-  EZO_STATUS_UNKNOWN = 0,
-  EZO_STATUS_SUCCESS,
-  EZO_STATUS_FAIL,
-  EZO_STATUS_NOT_READY,
-  EZO_STATUS_NO_DATA
-} ezo_device_status_t;
+Explicitly out of scope for v1:
 
-typedef enum {
-  EZO_COMMAND_GENERIC = 0,
-  EZO_COMMAND_READ,
-  EZO_COMMAND_READ_WITH_TEMP_COMP,
-  EZO_COMMAND_CALIBRATION
-} ezo_command_kind_t;
-
-typedef struct {
-  uint32_t wait_ms;
-} ezo_timing_hint_t;
-
-typedef struct ezo_i2c_transport {
-  ezo_result_t (*write_then_read)(void *context,
-                                  uint8_t address,
-                                  const uint8_t *tx_data,
-                                  size_t tx_len,
-                                  uint8_t *rx_data,
-                                  size_t rx_len,
-                                  size_t *rx_received);
-} ezo_i2c_transport_t;
-
-typedef struct {
-  uint8_t address;
-  const ezo_i2c_transport_t *transport;
-  void *transport_context;
-  uint8_t last_device_status;
-} ezo_i2c_device_t;
-```
-
-## Public API Surface
-
-```c
-ezo_result_t ezo_device_init(ezo_i2c_device_t *device,
-                             uint8_t address,
-                             const ezo_i2c_transport_t *transport,
-                             void *transport_context);
-
-void ezo_device_set_address(ezo_i2c_device_t *device, uint8_t address);
-uint8_t ezo_device_get_address(const ezo_i2c_device_t *device);
-ezo_device_status_t ezo_device_get_last_status(const ezo_i2c_device_t *device);
-
-ezo_result_t ezo_get_timing_hint_for_command_kind(ezo_command_kind_t kind,
-                                                  ezo_timing_hint_t *timing_hint);
-
-ezo_result_t ezo_send_command(ezo_i2c_device_t *device,
-                              const char *command,
-                              ezo_command_kind_t kind,
-                              ezo_timing_hint_t *timing_hint);
-
-ezo_result_t ezo_send_command_with_float(ezo_i2c_device_t *device,
-                                         const char *prefix,
-                                         double value,
-                                         uint8_t decimals,
-                                         ezo_command_kind_t kind,
-                                         ezo_timing_hint_t *timing_hint);
-
-ezo_result_t ezo_send_read(ezo_i2c_device_t *device,
-                           ezo_timing_hint_t *timing_hint);
-
-ezo_result_t ezo_send_read_with_temp_comp(ezo_i2c_device_t *device,
-                                          double temperature_c,
-                                          uint8_t decimals,
-                                          ezo_timing_hint_t *timing_hint);
-
-ezo_result_t ezo_read_response_raw(ezo_i2c_device_t *device,
-                                   uint8_t *buffer,
-                                   size_t buffer_len,
-                                   size_t *response_len,
-                                   ezo_device_status_t *device_status);
-
-ezo_result_t ezo_read_response(ezo_i2c_device_t *device,
-                               char *buffer,
-                               size_t buffer_len,
-                               size_t *response_len,
-                               ezo_device_status_t *device_status);
-
-ezo_result_t ezo_parse_double(const char *buffer,
-                              size_t buffer_len,
-                              double *value_out);
-```
+- typed pH/EC/RTD helper APIs
+- async/state-machine behavior
+- hidden retries or hidden delays
+- compatibility with the legacy Atlas API shape
 
 ## Transport Contract
 
-The transport boundary uses one transaction primitive in v1.
+The core depends on one injected transport callback:
 
-Semantics:
-
-- send-only: non-null `tx_data`, zero-length read side
-- read-only: zero-length write side, non-null `rx_data`
-- `rx_received` reports the actual byte count
+- `write_then_read(context, address, tx_data, tx_len, rx_data, rx_len, rx_received)`
 
 Transport responsibilities:
 
 - perform the bus transaction
-- return transport success/failure
-- report read byte count
+- report transport success or failure
+- report the actual read byte count
 
 Core responsibilities:
 
 - format commands
-- request responses
-- decode device status bytes
-- parse payloads
-- expose timing hints
+- request and decode responses
+- map status bytes
+- parse payload text
+- return timing hints
 
-## Error And Status Semantics
+## Status And Errors
 
-Library result and device status are separate.
+Known device status-byte mapping:
 
-Reference status-byte mapping:
-
-- `1 -> EZO_STATUS_SUCCESS`
-- `2 -> EZO_STATUS_FAIL`
-- `254 -> EZO_STATUS_NOT_READY`
-- `255 -> EZO_STATUS_NO_DATA`
+- `1` -> `EZO_STATUS_SUCCESS`
+- `2` -> `EZO_STATUS_FAIL`
+- `254` -> `EZO_STATUS_NOT_READY`
+- `255` -> `EZO_STATUS_NO_DATA`
 
 Rules:
 
-1. Transport failure:
-   - result: `EZO_ERR_TRANSPORT`
-   - status: `EZO_STATUS_UNKNOWN`
+1. Transport failures return `EZO_ERR_TRANSPORT` and leave device status as `EZO_STATUS_UNKNOWN`.
+2. Unknown status bytes return `EZO_ERR_PROTOCOL` and leave device status as `EZO_STATUS_UNKNOWN`.
+3. Valid but unsuccessful device responses still return `EZO_OK`; callers inspect device status.
+4. Parse failures return `EZO_ERR_PARSE` only after a successful device response.
 
-2. Unknown status byte:
-   - result: `EZO_ERR_PROTOCOL`
-   - status: `EZO_STATUS_UNKNOWN`
+## Response Semantics
 
-3. Valid but unsuccessful device response:
-   - result: `EZO_OK`
-   - status: one of `FAIL`, `NOT_READY`, `NO_DATA`
-
-4. Successful response with parse failure:
-   - result: `EZO_ERR_PARSE`
-   - status: `EZO_STATUS_SUCCESS`
-
-## Buffer Semantics
-
-`ezo_read_response()` is text-oriented in v1.
+`ezo_read_response()` is the text path.
 
 Rules:
 
-1. On success, the response buffer is null-terminated.
-2. `response_len` reports the payload length excluding the terminating null.
-3. The caller must provide enough space for payload plus terminating null.
-4. If the payload would exactly fill the buffer with no room for the null terminator, the result is `EZO_ERR_BUFFER_TOO_SMALL`.
-5. `buffer_len` must be at most `EZO_I2C_MAX_TEXT_RESPONSE_LEN`.
+1. The buffer is null-terminated on success.
+2. `response_len` excludes the terminating null.
+3. The caller must provide room for payload plus terminating null.
+4. If the payload fits exactly with no room for the null terminator, the result is `EZO_ERR_BUFFER_TOO_SMALL`.
+5. Text buffers are limited by `EZO_I2C_MAX_TEXT_RESPONSE_LEN`.
 
-`ezo_read_response_raw()` copies raw payload bytes after the device status byte.
+`ezo_read_response_raw()` is the byte-preserving path.
 
 Rules:
 
-1. Raw payload bytes are not null-terminated or interpreted as text.
-2. `response_len` reports the raw payload byte count.
-3. `buffer_len` must be at most `EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN`.
-4. Embedded zero bytes are preserved.
-5. If the device returns more payload bytes than fit in the caller buffer, the result is `EZO_ERR_BUFFER_TOO_SMALL`.
+1. The payload is copied exactly as returned after the status byte.
+2. No null termination is added.
+3. Embedded zero bytes are preserved.
+4. Raw buffers are limited by `EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN`.
+5. Oversized payloads return `EZO_ERR_BUFFER_TOO_SMALL`.
 
 ## Timing Semantics
 
 The core never sleeps.
 
-The caller is responsible for waiting according to the returned timing hint.
-
-v1 default timing classes:
+Default command-class hints in v1:
 
 - generic command: `300 ms`
 - read: `1000 ms`
 - read with temperature compensation: `1000 ms`
 - calibration: `1200 ms`
 
-These are conservative class-level defaults derived from `_reference/`, not per-device guarantees.
+These are conservative defaults derived from `_reference/`. They are hints, not guarantees.
 
-## Numeric Helper Semantics
+## Numeric Semantics
 
-`ezo_send_command_with_float()` formats fixed-point decimal text without relying on libc floating-point formatting.
+`ezo_send_command_with_float()` uses the library's own fixed-point formatter.
 
-`ezo_parse_double()` parses plain decimal text intended for EZO payloads:
+`ezo_parse_double()` accepts the subset of decimal text needed for EZO payloads:
 
-- optional leading/trailing ASCII whitespace
+- optional leading or trailing ASCII whitespace
 - optional sign
-- optional fractional component
+- optional fractional part
 - no exponent syntax
-
-`ezo_send_command_with_float()` accepts up to 9 decimal places in v1.
-
-## Canonical Call Flow
-
-### Generic query
-
-```c
-ezo_timing_hint_t hint;
-ezo_device_status_t status;
-char response[32];
-size_t response_len = 0;
-
-ezo_send_command(&device, "name,?", EZO_COMMAND_GENERIC, &hint);
-/* caller waits hint.wait_ms */
-ezo_read_response(&device, response, sizeof(response), &response_len, &status);
-```
-
-### Numeric read
-
-```c
-double value = 0.0;
-
-ezo_send_read(&device, &hint);
-/* caller waits hint.wait_ms */
-ezo_read_response(&device, response, sizeof(response), &response_len, &status);
-
-if (status == EZO_STATUS_SUCCESS) {
-  ezo_parse_double(response, response_len, &value);
-}
-```
-
-### Raw payload read
-
-```c
-uint8_t response[32];
-
-ezo_send_command(&device, "i", EZO_COMMAND_GENERIC, &hint);
-/* caller waits hint.wait_ms */
-ezo_read_response_raw(&device, response, sizeof(response), &response_len, &status);
-```
-
-## Explicit Non-Goals
-
-- preserve legacy `issued_read` / `NOT_READ_CMD` behavior
-- preserve the old Arduino API shape
-- add typed helpers in v1
-- hide waiting or retries inside the core
-
-## Remaining Deferred Questions
-
-There is no immediate contract blocker after the raw response path was added. Any future API additions should be justified by a concrete use case rather than convenience alone.

@@ -20,7 +20,7 @@ add_library(ezo_i2c_core STATIC
 
 target_include_directories(ezo_i2c_core
   PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 target_compile_features(ezo_i2c_core PUBLIC c_std_99)
@@ -29,7 +29,7 @@ add_library(ezo_i2c_cpp INTERFACE)
 
 target_include_directories(ezo_i2c_cpp
   INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 target_link_libraries(ezo_i2c_cpp INTERFACE ezo_i2c_core)
@@ -45,7 +45,7 @@ if(EZO_BUILD_TESTS)
   target_include_directories(ezo_i2c_core_tests
     PRIVATE
       ${CMAKE_CURRENT_SOURCE_DIR}
-      ${CMAKE_CURRENT_SOURCE_DIR}/include
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
   )
 
   target_link_libraries(ezo_i2c_core_tests PRIVATE ezo_i2c_core)
@@ -63,7 +63,7 @@ if(EZO_BUILD_TESTS)
   target_include_directories(ezo_i2c_cpp_tests
     PRIVATE
       ${CMAKE_CURRENT_SOURCE_DIR}
-      ${CMAKE_CURRENT_SOURCE_DIR}/include
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
   )
 
   target_link_libraries(ezo_i2c_cpp_tests PRIVATE ezo_i2c_cpp)
@@ -76,12 +76,12 @@ endif()
 
 if(EZO_BUILD_LINUX_ADAPTER)
   add_library(ezo_i2c_linux_adapter STATIC
-    adapters/linux/ezo_linux_i2c.c
+    src/linux/ezo_linux_i2c.c
   )
 
   target_include_directories(ezo_i2c_linux_adapter
     PUBLIC
-      ${CMAKE_CURRENT_SOURCE_DIR}/include
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
   )
 
   target_link_libraries(ezo_i2c_linux_adapter PUBLIC ezo_i2c_core)
@@ -94,7 +94,7 @@ if(EZO_BUILD_ARDUINO_ADAPTER)
 
   target_include_directories(ezo_i2c_arduino_adapter
     PUBLIC
-      ${CMAKE_CURRENT_SOURCE_DIR}/include
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
   )
 
   target_link_libraries(ezo_i2c_arduino_adapter PUBLIC ezo_i2c_core)
@@ -107,5 +107,3 @@ if(EZO_BUILD_EXAMPLES AND EZO_BUILD_LINUX_ADAPTER)
 
   target_link_libraries(ezo_i2c_linux_read_example PRIVATE ezo_i2c_linux_adapter)
 endif()
-
-message(STATUS "Configured ezo_i2c_driver core target")

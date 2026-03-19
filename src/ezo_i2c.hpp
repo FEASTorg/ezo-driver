@@ -1,6 +1,6 @@
-#ifndef EZO_I2C_SRC_FORWARD_HPP
-#define EZO_I2C_SRC_FORWARD_HPP
+#ifndef EZO_I2C_HPP
+#define EZO_I2C_HPP
 
-#include "../include/ezo_i2c.hpp"
+#include "ezo_i2c/ezo_i2c.hpp"
 
 #endif

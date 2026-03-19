@@ -1,6 +1,6 @@
 # EZO I2C Driver
 
-Cross-platform EZO I2C driver rewrite with:
+Small cross-platform EZO I2C driver rewrite with:
 
 - a platform-agnostic C99 core
 - a thin C++11 wrapper
@@ -8,7 +8,7 @@ Cross-platform EZO I2C driver rewrite with:
 - Linux I2C adapter support
 - host-side tests and Arduino compile CI
 
-This repository is a rewrite informed by Atlas Scientific's original `Ezo_i2c_lib`, which remains preserved under [`_reference/`](/mnt/c/Users/Cameron/repos_feast/ezo-i2c-driver/_reference).
+This repository is a rewrite informed by Atlas Scientific's original `Ezo_i2c_lib`. The legacy reference code remains under [`_reference/`](./_reference/).
 
 ## Status
 
@@ -21,15 +21,13 @@ Current implementation includes:
 - CMake host build/test flow
 - PlatformIO Arduino compile validation in CI
 
-## Repository Layout
+## Layout
 
-- `include/`: canonical public headers
-- `src/`: core implementation and Arduino-library-compatible forwarded headers
-- `adapters/linux/`: Linux adapter implementation
+- `src/`: canonical library source tree and public headers
 - `examples/`: focused Arduino and Linux examples
 - `tests/`: host-side tests and fakes
-- `docs/`: tracked implementation-governing docs
-- `_reference/`: canonical legacy reference material
+- `docs/`: tracked implementation docs
+- `_reference/`: legacy reference material only
 
 ## Build And Validation
 
@@ -49,18 +47,17 @@ Arduino IDE validation remains manual by design.
 
 Arduino-facing packaging metadata is provided via:
 
-- [`library.properties`](/mnt/c/Users/Cameron/repos_feast/ezo-i2c-driver/library.properties)
-- [`library.json`](/mnt/c/Users/Cameron/repos_feast/ezo-i2c-driver/library.json)
+- [`library.properties`](./library.properties)
+- [`library.json`](./library.json)
 
 Examples:
 
-- [`examples/arduino_smoke/arduino_smoke.ino`](/mnt/c/Users/Cameron/repos_feast/ezo-i2c-driver/examples/arduino_smoke/arduino_smoke.ino)
-- [`examples/arduino_read/arduino_read.ino`](/mnt/c/Users/Cameron/repos_feast/ezo-i2c-driver/examples/arduino_read/arduino_read.ino)
+- [`examples/arduino_smoke/arduino_smoke.ino`](./examples/arduino_smoke/arduino_smoke.ino)
+- [`examples/arduino_read/arduino_read.ino`](./examples/arduino_read/arduino_read.ino)
 
-## Contract Docs
+## Docs
 
-Tracked implementation docs live in [`docs/`](/mnt/c/Users/Cameron/repos_feast/ezo-i2c-driver/docs):
+Tracked implementation docs:
 
-- [`docs/decision-log.md`](/mnt/c/Users/Cameron/repos_feast/ezo-i2c-driver/docs/decision-log.md)
-- [`docs/architecture.md`](/mnt/c/Users/Cameron/repos_feast/ezo-i2c-driver/docs/architecture.md)
-- [`docs/api-contract.md`](/mnt/c/Users/Cameron/repos_feast/ezo-i2c-driver/docs/api-contract.md)
+- [`docs/architecture.md`](./docs/architecture.md)
+- [`docs/api-contract.md`](./docs/api-contract.md)
