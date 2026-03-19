@@ -1,4 +1,4 @@
-#include "ezo_i2c/adapters/linux_i2c.h"
+#include "ezo_i2c/linux_i2c.h"
 #include "ezo_i2c/ezo_i2c.h"
 
 #include <fcntl.h>

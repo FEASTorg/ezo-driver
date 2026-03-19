@@ -1,4 +1,4 @@
-#include "ezo_i2c/adapters/arduino_wire.h"
+#include "ezo_i2c/arduino_wire.h"
 
 #include <stddef.h>
 #include <stdint.h>

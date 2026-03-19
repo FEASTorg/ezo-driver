@@ -1,5 +1,5 @@
-#ifndef EZO_I2C_ADAPTERS_ARDUINO_WIRE_H
-#define EZO_I2C_ADAPTERS_ARDUINO_WIRE_H
+#ifndef EZO_I2C_ARDUINO_WIRE_H
+#define EZO_I2C_ARDUINO_WIRE_H
 
 #ifndef __cplusplus
 #error "arduino_wire adapter requires C++"

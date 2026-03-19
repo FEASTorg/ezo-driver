@@ -5,7 +5,7 @@ Small cross-platform EZO I2C driver rewrite with:
 - a platform-agnostic C99 core
 - a thin C++11 wrapper
 - Arduino `TwoWire` integration
-- Linux I2C adapter support
+- Linux I2C support
 - host-side tests and Arduino compile CI
 
 This repository is a rewrite informed by Atlas Scientific's original `Ezo_i2c_lib`. The legacy reference code remains under [`_reference/`](./_reference/).
@@ -16,7 +16,7 @@ Current implementation includes:
 
 - generic EZO command send/read flow
 - text and raw response decoding with numeric parsing helpers
-- Arduino and Linux transport adapters
+- Arduino and Linux platform integrations
 - Arduino examples for both the C and C++ surfaces
 - CMake host build/test flow
 - PlatformIO Arduino compile validation in CI

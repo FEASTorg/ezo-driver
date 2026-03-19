@@ -40,9 +40,9 @@ Everything else is supporting material:
    - header-only convenience layer over the C core
    - no separate protocol logic
 
-3. Platform adapters
+3. Platform integrations
    - convert platform I2C APIs into the transport callback contract
-   - current adapters: Arduino `TwoWire`, Linux file descriptor transport
+   - current integrations: Arduino `TwoWire`, Linux file descriptor transport
 
 ## Transport Boundary
 
