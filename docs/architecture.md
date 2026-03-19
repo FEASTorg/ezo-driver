@@ -70,13 +70,14 @@ Responsibility:
 
 Initial adapters:
 
-- `adapters/arduino/`
+- `src/arduino/`
 - `adapters/linux/`
 
 Arduino adapter:
 
 - wraps `TwoWire`
 - stays outside the core public C headers
+- is compiled from `src/arduino/` for Arduino library tooling compatibility
 
 Linux adapter:
 
@@ -219,8 +220,8 @@ The build layout should support:
 ```text
 include/
 src/
-adapters/
   arduino/
+adapters/
   linux/
 tests/
 examples/

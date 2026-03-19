@@ -237,6 +237,7 @@ Consequences:
 
 - CMake becomes the primary developer workflow.
 - Arduino/PlatformIO packaging work should stay aligned with, not drive, the core layout.
+- Arduino-facing headers may be mirrored under `src/` when required by Arduino library tooling.
 
 ## ED-013: Public numeric values use `double` in the C API
 
