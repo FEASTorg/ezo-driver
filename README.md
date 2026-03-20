@@ -8,6 +8,7 @@ Cross-platform Atlas Scientific EZO driver with:
 - Arduino `TwoWire` integration for I2C
 - Arduino `Stream` integration for UART
 - Linux I2C support
+- Linux host POSIX UART support
 - host-side tests and Arduino compile CI
 
 This repository is a rewrite informed by Atlas Scientific's original reference libraries. Legacy reference code remains under [`_reference/`](./_reference/).
@@ -21,11 +22,16 @@ Current implementation includes:
 - complete UART core with line-based response handling
 - Arduino integrations for both I2C and UART
 - Linux I2C integration
+- Linux host POSIX UART integration
 - focused Arduino and Linux examples
 - host-side C and C++ tests plus fake transport coverage
 - PlatformIO Arduino compile validation in CI
 
-UART platform support is currently Arduino-only. POSIX UART remains a later follow-up.
+Current support matrix:
+
+- I2C: C core, I2C C++ wrapper, Arduino `TwoWire`, Linux I2C adapter
+- UART: C core, Arduino `Stream`, Linux host POSIX serial adapter
+- Shared: host-side tests and Arduino compile validation
 
 ## Layout
 
@@ -33,7 +39,7 @@ UART platform support is currently Arduino-only. POSIX UART remains a later foll
 - `platform/`: host-only platform implementation code not intended for Arduino library builds
 - `examples/`: focused Arduino and Linux examples
 - `tests/`: host-side tests and fakes
-- `docs/`: tracked handoff docs
+- `docs/`: tracked handoff docs and curated EZO product/protocol notes
 - `_reference/`: legacy reference material only
 
 ## Build
@@ -46,10 +52,16 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
+To build the host-side examples, enable the host adapters explicitly:
+
+```sh
+cmake -S . -B build -DEZO_BUILD_EXAMPLES=ON -DEZO_BUILD_LINUX_ADAPTER=ON -DEZO_BUILD_POSIX_UART_ADAPTER=ON
+```
+
 ## Validation
 
 - host CI builds and runs C and C++ tests for the shared, I2C, and UART core paths
-- Linux I2C adapter behavior is covered by host-side tests
+- Linux I2C and Linux host POSIX UART adapter behavior are covered by host-side tests
 - PlatformIO CI compile-checks Arduino I2C and UART examples for `uno`, `nanoatmega328`, and `esp32dev`
 - Arduino IDE validation is manual by design
 
@@ -65,6 +77,7 @@ ctest --test-dir build --output-on-failure
 - [`examples/arduino_uart_smoke/arduino_uart_smoke.ino`](./examples/arduino_uart_smoke/arduino_uart_smoke.ino): minimal UART C API smoke path
 - [`examples/arduino_uart_read/arduino_uart_read.ino`](./examples/arduino_uart_read/arduino_uart_read.ino): UART read flow with explicit timing and parse path
 - [`examples/linux_read.c`](./examples/linux_read.c): minimal Linux I2C transport example
+- [`examples/linux_uart_read.c`](./examples/linux_uart_read.c): minimal Linux host POSIX UART transport example
 
 ## Entry Points
 
@@ -76,6 +89,7 @@ Primary public headers:
 - [`src/ezo_i2c_arduino_wire.h`](./src/ezo_i2c_arduino_wire.h)
 - [`src/ezo_i2c_linux_i2c.h`](./src/ezo_i2c_linux_i2c.h)
 - [`src/ezo_uart.h`](./src/ezo_uart.h)
+- [`src/ezo_uart_posix_serial.h`](./src/ezo_uart_posix_serial.h)
 - [`src/ezo_uart_arduino_stream.h`](./src/ezo_uart_arduino_stream.h)
 
 Primary implementation files:
@@ -86,6 +100,7 @@ Primary implementation files:
 - [`src/ezo_i2c_arduino_wire.cpp`](./src/ezo_i2c_arduino_wire.cpp)
 - [`platform/linux/ezo_i2c_linux_i2c.c`](./platform/linux/ezo_i2c_linux_i2c.c)
 - [`src/ezo_uart.c`](./src/ezo_uart.c)
+- [`platform/linux/ezo_uart_posix_serial.c`](./platform/linux/ezo_uart_posix_serial.c)
 - [`src/ezo_uart_arduino_stream.cpp`](./src/ezo_uart_arduino_stream.cpp)
 
 ## Docs
@@ -103,5 +118,4 @@ Intentionally out of scope for the current baseline:
 - async/state-machine behavior
 - hidden retries or hidden delays
 - compatibility with the legacy Atlas API shape
-- UART POSIX adapter
 - UART C++ wrapper

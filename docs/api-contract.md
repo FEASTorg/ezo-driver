@@ -9,6 +9,7 @@ Source of truth:
 - I2C C++ API: `src/ezo_i2c.hpp`
 - I2C Arduino adapter API: `src/ezo_i2c_arduino_wire.h`
 - UART C API: `src/ezo_uart.h`
+- POSIX UART adapter API: `src/ezo_uart_posix_serial.h`
 - UART Arduino adapter API: `src/ezo_uart_arduino_stream.h`
 
 This document records repo-level contract decisions. It does not duplicate every declaration from the headers.
@@ -101,6 +102,7 @@ The UART API provides:
 - read helpers for plain read and read-with-temperature-compensation
 - CR-terminated text response reads
 - optional explicit input discard
+- POSIX serial adapter surface
 - Arduino `Stream` adapter surface
 
 Primary UART C entry points:
@@ -126,6 +128,14 @@ UART Arduino adapter contract:
 - keeps CR framing policy in the core
 - does not use `String`
 - does not hide delays
+
+POSIX UART adapter contract:
+
+- owns the file descriptor it opens
+- requires explicit baud selection
+- configures termios for 8N1, no flow control, and bounded reads
+- restores saved termios state on close
+- exposes the standard `ezo_uart_transport_t` through a transport getter
 
 UART framing rules:
 
@@ -157,12 +167,12 @@ Current validation covers:
 
 - I2C core behavior with fake transports
 - UART core behavior with fake transports
-- Linux I2C adapter behavior on host builds
+- Linux I2C and Linux host POSIX UART adapter behavior on host builds
 - Arduino I2C and UART example compile validation through PlatformIO
 
 Current gap by design:
 
-- POSIX UART adapter support is not part of the current baseline yet
+- a UART C++ wrapper is not part of the current baseline yet
 
 ## Explicit Non-Goals
 
@@ -172,5 +182,4 @@ Not part of the current baseline:
 - async/state-machine behavior
 - hidden retries or hidden delays
 - compatibility with the legacy Atlas API shape
-- POSIX UART adapter
 - UART C++ wrapper

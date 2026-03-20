@@ -11,19 +11,23 @@ All notable tracked changes to this rewrite will be recorded here.
 - shared public `ezo.h` surface for result types, timing hints, and numeric parsing
 - UART C core with line-based response framing and response classification
 - Arduino `Stream` transport adapter for UART
+- POSIX UART public header and Linux host adapter
 - focused Arduino UART smoke and read examples
+- minimal Linux UART example
 - host-side fake UART transport coverage and UART core tests
+- host-side POSIX UART adapter tests
 
 ### Changed
 
 - repositioned the repo and tracked docs around an explicit multi-mode `ezo-driver` surface
 - aligned CMake and package metadata with the multi-mode product scope
 - expanded PlatformIO Arduino compile CI to include UART examples
+- closed the remaining host parity gap so both I2C and UART now have Arduino and Linux host paths
 
 ### Notes
 
-- UART platform support currently means Arduino `Stream`
-- POSIX UART support and a UART C++ wrapper are intentionally deferred
+- current support matrix is now I2C = Arduino + Linux and UART = Arduino + Linux host POSIX serial
+- a UART C++ wrapper is still intentionally deferred
 
 ## [0.1.0] - initial I2C baseline
 

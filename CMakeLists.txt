@@ -13,6 +13,7 @@ option(EZO_BUILD_TESTS "Build unit tests" OFF)
 option(EZO_BUILD_EXAMPLES "Build examples" OFF)
 option(EZO_BUILD_ARDUINO_ADAPTER "Build Arduino adapter sources" OFF)
 option(EZO_BUILD_LINUX_ADAPTER "Build Linux adapter sources" OFF)
+option(EZO_BUILD_POSIX_UART_ADAPTER "Build POSIX UART adapter sources" OFF)
 
 add_library(ezo_core STATIC
   src/ezo.c
@@ -109,6 +110,24 @@ if(EZO_BUILD_TESTS)
       NAME ezo_i2c_linux_adapter_tests
       COMMAND ezo_i2c_linux_adapter_tests
     )
+
+    add_executable(ezo_uart_posix_adapter_tests
+      platform/linux/ezo_uart_posix_serial.c
+      tests/test_uart_posix_adapter.c
+    )
+
+    target_include_directories(ezo_uart_posix_adapter_tests
+      PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
+
+    target_link_libraries(ezo_uart_posix_adapter_tests PRIVATE ezo_core)
+
+    add_test(
+      NAME ezo_uart_posix_adapter_tests
+      COMMAND ezo_uart_posix_adapter_tests
+    )
   endif()
 endif()
 
@@ -123,6 +142,19 @@ if(EZO_BUILD_LINUX_ADAPTER)
   )
 
   target_link_libraries(ezo_i2c_linux_adapter PUBLIC ezo_core)
+endif()
+
+if(EZO_BUILD_POSIX_UART_ADAPTER AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  add_library(ezo_uart_posix_adapter STATIC
+    platform/linux/ezo_uart_posix_serial.c
+  )
+
+  target_include_directories(ezo_uart_posix_adapter
+    PUBLIC
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+
+  target_link_libraries(ezo_uart_posix_adapter PUBLIC ezo_core)
 endif()
 
 if(EZO_BUILD_ARDUINO_ADAPTER)
@@ -155,4 +187,12 @@ if(EZO_BUILD_EXAMPLES AND EZO_BUILD_LINUX_ADAPTER)
   )
 
   target_link_libraries(ezo_i2c_linux_read_example PRIVATE ezo_i2c_linux_adapter)
+endif()
+
+if(EZO_BUILD_EXAMPLES AND EZO_BUILD_POSIX_UART_ADAPTER AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  add_executable(ezo_uart_linux_read_example
+    examples/linux_uart_read.c
+  )
+
+  target_link_libraries(ezo_uart_linux_read_example PRIVATE ezo_uart_posix_adapter)
 endif()
