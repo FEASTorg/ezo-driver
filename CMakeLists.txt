@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(
-  ezo_i2c_driver
+  ezo_driver
   VERSION 0.1.0
-  DESCRIPTION "Cross-platform EZO I2C driver rewrite"
+  DESCRIPTION "Cross-platform Atlas Scientific EZO driver"
   LANGUAGES C CXX
 )
 
@@ -14,17 +14,19 @@ option(EZO_BUILD_EXAMPLES "Build examples" OFF)
 option(EZO_BUILD_ARDUINO_ADAPTER "Build Arduino adapter sources" OFF)
 option(EZO_BUILD_LINUX_ADAPTER "Build Linux adapter sources" OFF)
 
-add_library(ezo_i2c_core STATIC
+add_library(ezo_core STATIC
+  src/ezo.c
   src/ezo_common.c
   src/ezo_i2c.c
+  src/ezo_uart.c
 )
 
-target_include_directories(ezo_i2c_core
+target_include_directories(ezo_core
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-target_compile_features(ezo_i2c_core PUBLIC c_std_99)
+target_compile_features(ezo_core PUBLIC c_std_99)
 
 add_library(ezo_i2c_cpp INTERFACE)
 
@@ -33,7 +35,7 @@ target_include_directories(ezo_i2c_cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-target_link_libraries(ezo_i2c_cpp INTERFACE ezo_i2c_core)
+target_link_libraries(ezo_i2c_cpp INTERFACE ezo_core)
 
 target_compile_features(ezo_i2c_cpp INTERFACE cxx_std_11)
 
@@ -49,7 +51,7 @@ if(EZO_BUILD_TESTS)
       ${CMAKE_CURRENT_SOURCE_DIR}/src
   )
 
-  target_link_libraries(ezo_i2c_core_tests PRIVATE ezo_i2c_core)
+  target_link_libraries(ezo_i2c_core_tests PRIVATE ezo_core)
 
   add_test(
     NAME ezo_i2c_core_tests
@@ -72,6 +74,24 @@ if(EZO_BUILD_TESTS)
   add_test(
     NAME ezo_i2c_cpp_tests
     COMMAND ezo_i2c_cpp_tests
+  )
+
+  add_executable(ezo_uart_core_tests
+    tests/fakes/ezo_fake_uart_transport.c
+    tests/test_ezo_uart.c
+  )
+
+  target_include_directories(ezo_uart_core_tests
+    PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+
+  target_link_libraries(ezo_uart_core_tests PRIVATE ezo_core)
+
+  add_test(
+    NAME ezo_uart_core_tests
+    COMMAND ezo_uart_core_tests
   )
 
   if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -102,7 +122,7 @@ if(EZO_BUILD_LINUX_ADAPTER)
       ${CMAKE_CURRENT_SOURCE_DIR}/src
   )
 
-  target_link_libraries(ezo_i2c_linux_adapter PUBLIC ezo_i2c_core)
+  target_link_libraries(ezo_i2c_linux_adapter PUBLIC ezo_core)
 endif()
 
 if(EZO_BUILD_ARDUINO_ADAPTER)
@@ -115,7 +135,7 @@ if(EZO_BUILD_ARDUINO_ADAPTER)
       ${CMAKE_CURRENT_SOURCE_DIR}/src
   )
 
-  target_link_libraries(ezo_i2c_arduino_adapter PUBLIC ezo_i2c_core)
+  target_link_libraries(ezo_i2c_arduino_adapter PUBLIC ezo_core)
 endif()
 
 if(EZO_BUILD_EXAMPLES AND EZO_BUILD_LINUX_ADAPTER)

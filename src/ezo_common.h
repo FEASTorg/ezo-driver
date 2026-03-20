@@ -1,7 +1,7 @@
 #ifndef EZO_COMMON_H
 #define EZO_COMMON_H
 
-#include "ezo_i2c.h"
+#include "ezo.h"
 
 #ifdef __cplusplus
 extern "C" {

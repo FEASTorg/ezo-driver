@@ -1,29 +1,32 @@
-# EZO I2C Driver
+# EZO Driver
 
-Small cross-platform EZO I2C driver rewrite with:
+Cross-platform Atlas Scientific EZO driver with:
 
 - a platform-agnostic C99 core
-- a thin C++11 wrapper
-- Arduino `TwoWire` integration
+- a thin C++11 wrapper for the I2C surface
+- Arduino `TwoWire` integration for I2C
 - Linux I2C support
 - host-side tests and Arduino compile CI
 
-This repository is a rewrite informed by Atlas Scientific's original `Ezo_i2c_lib`. The legacy reference code remains under [`_reference/`](./_reference/).
+This repository is a rewrite informed by Atlas Scientific's original reference libraries. Legacy reference code remains under [`_reference/`](./_reference/).
 
 ## Status
 
 Current implementation includes:
 
-- generic EZO command send/read flow
-- text and raw response decoding with numeric parsing helpers
-- Arduino and Linux platform integrations
-- Arduino examples for both the C and C++ surfaces
-- CMake host build/test flow
+- shared `ezo.h` surface for results, timing hints, and numeric parsing
+- complete I2C core with text and raw response decoding
+- UART core with line-based response handling
+- Arduino and Linux integrations for I2C
+- focused Arduino and Linux examples for the I2C path
+- host-side C and C++ tests plus fake transport coverage
 - PlatformIO Arduino compile validation in CI
+
+UART platform adapters are intentionally not part of the current baseline yet.
 
 ## Layout
 
-- `src/`: canonical library root for public headers and implementation
+- `src/`: canonical library root for public headers and Arduino-safe implementation
 - `platform/`: host-only platform implementation code not intended for Arduino library builds
 - `examples/`: focused Arduino and Linux examples
 - `tests/`: host-side tests and fakes
@@ -42,9 +45,9 @@ ctest --test-dir build --output-on-failure
 
 ## Validation
 
-- host CI builds and runs C and C++ tests
+- host CI builds and runs C and C++ tests for the shared, I2C, and UART core paths
 - Linux adapter behavior is covered by host-side tests
-- PlatformIO CI compile-checks Arduino examples for `uno`, `nanoatmega328`, and `esp32dev`
+- PlatformIO CI compile-checks Arduino I2C examples for `uno`, `nanoatmega328`, and `esp32dev`
 - Arduino IDE validation is manual by design
 
 ## Packaging
@@ -54,22 +57,27 @@ ctest --test-dir build --output-on-failure
 
 ## Examples
 
-- [`examples/arduino_smoke/arduino_smoke.ino`](./examples/arduino_smoke/arduino_smoke.ino): minimal C API smoke path
-- [`examples/arduino_read/arduino_read.ino`](./examples/arduino_read/arduino_read.ino): C++ wrapper example
-- [`examples/linux_read.c`](./examples/linux_read.c): minimal Linux transport example
+- [`examples/arduino_smoke/arduino_smoke.ino`](./examples/arduino_smoke/arduino_smoke.ino): minimal I2C C API smoke path
+- [`examples/arduino_read/arduino_read.ino`](./examples/arduino_read/arduino_read.ino): I2C C++ wrapper example
+- [`examples/linux_read.c`](./examples/linux_read.c): minimal Linux I2C transport example
 
 ## Entry Points
 
 Primary public headers:
 
+- [`src/ezo.h`](./src/ezo.h)
 - [`src/ezo_i2c.h`](./src/ezo_i2c.h)
 - [`src/ezo_i2c.hpp`](./src/ezo_i2c.hpp)
+- [`src/ezo_uart.h`](./src/ezo_uart.h)
 - [`src/ezo_i2c_arduino_wire.h`](./src/ezo_i2c_arduino_wire.h)
 - [`src/ezo_i2c_linux_i2c.h`](./src/ezo_i2c_linux_i2c.h)
 
 Primary implementation files:
 
+- [`src/ezo.c`](./src/ezo.c)
+- [`src/ezo_common.c`](./src/ezo_common.c)
 - [`src/ezo_i2c.c`](./src/ezo_i2c.c)
+- [`src/ezo_uart.c`](./src/ezo_uart.c)
 - [`src/ezo_i2c_arduino_wire.cpp`](./src/ezo_i2c_arduino_wire.cpp)
 - [`platform/linux/ezo_i2c_linux_i2c.c`](./platform/linux/ezo_i2c_linux_i2c.c)
 
@@ -81,9 +89,10 @@ Primary implementation files:
 
 ## Scope Notes
 
-Intentionally out of scope for v1:
+Intentionally out of scope for the current baseline:
 
 - typed pH/EC/RTD helper APIs
 - async/state-machine behavior
 - hidden retries or hidden delays
 - compatibility with the legacy Atlas API shape
+- UART Arduino or POSIX platform adapters

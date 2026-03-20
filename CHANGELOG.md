@@ -7,11 +7,13 @@ All notable tracked changes to this rewrite will be recorded here.
 ### Added
 
 - C99 transport-agnostic core for EZO command formatting, response decoding, and numeric helpers
-- thin header-only C++11 wrapper over the C core
-- Arduino `TwoWire` transport adapter
-- Linux file-descriptor transport adapter
-- raw response API alongside the text response path
-- focused Arduino and Linux examples
+- shared `ezo.h` public surface for result types, timing hints, and numeric parsing
+- UART C core with line-based response framing and response classification
+- thin header-only C++11 wrapper over the I2C C core
+- Arduino `TwoWire` transport adapter for I2C
+- Linux file-descriptor transport adapter for I2C
+- raw response API alongside the I2C text response path
+- focused Arduino and Linux examples for the I2C path
 - host-side C and C++ tests with fake transport coverage
 - Linux adapter behavior tests
 - GitHub Actions CI for host builds/tests
@@ -19,10 +21,12 @@ All notable tracked changes to this rewrite will be recorded here.
 
 ### Changed
 
-- simplified the repo so `src/` is the canonical library root for public headers and implementation
+- extracted shared formatting and parsing helpers into `ezo_common`
+- simplified the repo so `src/` is the canonical library root for public headers and Arduino-safe implementation
 - reduced tracked docs to a small handoff-oriented set
 
 ### Notes
 
 - Arduino IDE validation is manual only
 - `_reference/` remains legacy reference material and is not part of the product surface
+- UART platform adapters are intentionally deferred past the current baseline

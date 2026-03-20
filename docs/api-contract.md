@@ -4,42 +4,59 @@ Status: accepted
 
 Source of truth:
 
-- public C API: `src/ezo_i2c.h`
-- public C++ API: `src/ezo_i2c.hpp`
+- shared C API: `src/ezo.h`
+- I2C C API: `src/ezo_i2c.h`
+- I2C C++ API: `src/ezo_i2c.hpp`
+- UART C API: `src/ezo_uart.h`
 
-This document only records the contract decisions that matter at the repo level. It does not duplicate every declaration from the headers.
+This document records repo-level contract decisions. It does not duplicate every declaration from the headers.
 
 ## Core Rules
 
 1. The core is C99.
 2. The core is synchronous.
-3. The core is transport-agnostic.
-4. The core does not allocate dynamically.
-5. The core does not sleep internally.
-6. Callers own timing and buffers.
-7. Library results and device status are separate.
+3. The core does not allocate dynamically.
+4. The core does not sleep internally.
+5. Callers own timing and buffers.
+6. Library results and device response state are separate.
+7. I2C and UART use separate transport contracts and separate device types.
 
-## Public Surface
+## Shared Public Surface
 
-The v1 public surface provides:
+The shared public surface provides:
+
+- `ezo_result_t`
+- `ezo_command_kind_t`
+- `ezo_timing_hint_t`
+- `ezo_get_timing_hint_for_command_kind()`
+- `ezo_parse_double()`
+
+Shared timing hints remain:
+
+- generic command: `300 ms`
+- read: `1000 ms`
+- read with temperature compensation: `1000 ms`
+- calibration: `1200 ms`
+
+`ezo_parse_double()` accepts the decimal subset needed for EZO payloads:
+
+- optional leading or trailing ASCII whitespace
+- optional sign
+- optional fractional part
+- no exponent syntax
+
+## I2C Surface
+
+The I2C API provides:
 
 - device init and address accessors
-- timing hints by command kind
 - generic command send helpers
 - read helpers for plain read and read-with-temperature-compensation
 - text response reads
 - raw response reads
-- decimal parsing helper
 - thin C++ wrapper over the same C surface
 
-Explicitly out of scope for v1:
-
-- typed pH/EC/RTD helper APIs
-- async/state-machine behavior
-- hidden retries or hidden delays
-- compatibility with the legacy Atlas API shape
-
-Primary C entry points:
+Primary I2C C entry points:
 
 - `ezo_device_init()`
 - `ezo_send_command()`
@@ -48,98 +65,92 @@ Primary C entry points:
 - `ezo_send_read_with_temp_comp()`
 - `ezo_read_response()`
 - `ezo_read_response_raw()`
-- `ezo_parse_double()`
 
-## Transport Contract
-
-The core depends on one injected transport callback:
+I2C transport contract:
 
 - `write_then_read(context, address, tx_data, tx_len, rx_data, rx_len, rx_received)`
 
-Transport responsibilities:
+I2C response semantics:
 
-- perform the bus transaction
-- report transport success or failure
-- report the actual read byte count
+- first byte is the device status byte
+- text and raw response reads are explicit separate paths
+- valid but unsuccessful device statuses still return `EZO_OK`
 
-Core responsibilities:
-
-- format commands
-- request and decode responses
-- map status bytes
-- parse payload text
-- return timing hints
-
-## Status And Errors
-
-Known device status-byte mapping:
+I2C status-byte mapping:
 
 - `1` -> `EZO_STATUS_SUCCESS`
 - `2` -> `EZO_STATUS_FAIL`
 - `254` -> `EZO_STATUS_NOT_READY`
 - `255` -> `EZO_STATUS_NO_DATA`
 
+## UART Surface
+
+The UART API provides:
+
+- device init
+- generic command send helpers
+- read helpers for plain read and read-with-temperature-compensation
+- CR-terminated text response reads
+- optional explicit input discard
+
+Primary UART C entry points:
+
+- `ezo_uart_device_init()`
+- `ezo_uart_send_command()`
+- `ezo_uart_send_command_with_float()`
+- `ezo_uart_send_read()`
+- `ezo_uart_send_read_with_temp_comp()`
+- `ezo_uart_read_response()`
+- `ezo_uart_discard_input()`
+
+UART transport contract:
+
+- `write_bytes(context, tx_data, tx_len)`
+- `read_bytes(context, rx_data, rx_len, rx_received)`
+- optional `discard_input(context)`
+
+UART framing rules:
+
+- public send helpers accept command text without terminators
+- the core appends a single `\r`
+- responses are read until a single `\r`
+- returned buffers are null-terminated on success
+- `response_len` excludes the null terminator
+
+UART response classification:
+
+- `EZO_UART_RESPONSE_DATA`: any successful non-empty line that is not a control token
+- `EZO_UART_RESPONSE_OK`: exact `*OK`
+- `EZO_UART_RESPONSE_ERROR`: exact `*ER`
+- `EZO_UART_RESPONSE_UNKNOWN`: initial or failure state
+
 Rules:
 
-1. Transport failures return `EZO_ERR_TRANSPORT` and leave device status as `EZO_STATUS_UNKNOWN`.
-2. Unknown status bytes return `EZO_ERR_PROTOCOL` and leave device status as `EZO_STATUS_UNKNOWN`.
-3. Valid but unsuccessful device responses still return `EZO_OK`; callers inspect device status.
-4. Parse failures return `EZO_ERR_PARSE` only after a successful device response.
+1. `*OK` and `*ER` are device responses, not transport errors.
+2. A valid `*ER` response still returns `EZO_OK`; callers inspect the response kind.
+3. Zero-length or incomplete lines return `EZO_ERR_PROTOCOL`.
+4. Buffer exhaustion before `\r` returns `EZO_ERR_BUFFER_TOO_SMALL`.
+5. v1 does not expose a raw UART response API.
 
-## Response Semantics
+## Validation Boundaries
 
-`ezo_read_response()` is the text path.
+Current validation covers:
 
-Rules:
+- I2C core behavior with fake transports
+- UART core behavior with fake transports
+- Linux I2C adapter behavior on host builds
+- Arduino I2C example compile validation
 
-1. The buffer is null-terminated on success.
-2. `response_len` excludes the terminating null.
-3. The caller must provide room for payload plus terminating null.
-4. If the payload fits exactly with no room for the null terminator, the result is `EZO_ERR_BUFFER_TOO_SMALL`.
-5. Text buffers are limited by `EZO_I2C_MAX_TEXT_RESPONSE_LEN`.
+Current gap by design:
 
-`ezo_read_response_raw()` is the byte-preserving path.
+- UART platform adapters are not part of the current baseline yet
 
-Rules:
+## Explicit Non-Goals
 
-1. The payload is copied exactly as returned after the status byte.
-2. No null termination is added.
-3. Embedded zero bytes are preserved.
-4. Raw buffers are limited by `EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN`.
-5. Oversized payloads return `EZO_ERR_BUFFER_TOO_SMALL`.
+Not part of the current baseline:
 
-Callers choose the text or raw path explicitly. The library does not infer payload type.
-
-## Timing Semantics
-
-The core never sleeps.
-
-Default command-class hints in v1:
-
-- generic command: `300 ms`
-- read: `1000 ms`
-- read with temperature compensation: `1000 ms`
-- calibration: `1200 ms`
-
-These are conservative defaults derived from `_reference/`. They are hints, not guarantees.
-
-## Numeric Semantics
-
-`ezo_send_command_with_float()` uses the library's own fixed-point formatter.
-
-`ezo_parse_double()` accepts the subset of decimal text needed for EZO payloads:
-
-- optional leading or trailing ASCII whitespace
-- optional sign
-- optional fractional part
-- no exponent syntax
-
-## Call Pattern
-
-Typical command flow:
-
-1. initialize a device with a transport callback and context
-2. send a command and read the timing hint
-3. wait outside the library
-4. read either a text or raw response
-5. inspect device status separately from the library result
+- typed pH/EC/RTD helper APIs
+- async/state-machine behavior
+- hidden retries or hidden delays
+- compatibility with the legacy Atlas API shape
+- UART Arduino or POSIX adapter packaging
