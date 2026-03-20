@@ -1,6 +1,7 @@
 #include "ezo_common.h"
 
 #include <ctype.h>
+#include <float.h>
 #include <stdint.h>
 
 enum {
@@ -80,6 +81,10 @@ static ezo_result_t ezo_common_append_uint64(char *buffer,
   return EZO_OK;
 }
 
+static int ezo_common_is_finite(double value) {
+  return value >= -DBL_MAX && value <= DBL_MAX;
+}
+
 ezo_result_t ezo_common_format_fixed_command(char *buffer,
                                              size_t buffer_len,
                                              const char *prefix,
@@ -104,6 +109,10 @@ ezo_result_t ezo_common_format_fixed_command(char *buffer,
     return EZO_ERR_INVALID_ARGUMENT;
   }
 
+  if (!ezo_common_is_finite(value)) {
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
+
   buffer[0] = '\0';
 
   result = ezo_common_append_cstr(buffer, buffer_len, &used, prefix);
@@ -120,11 +129,21 @@ ezo_result_t ezo_common_format_fixed_command(char *buffer,
     scale *= 10U;
   }
 
-  if (absolute_value > ((double)UINT64_MAX / (double)scale)) {
+  if (absolute_value > (((double)UINT64_MAX - 1.0) / (double)scale)) {
     return EZO_ERR_INVALID_ARGUMENT;
   }
 
-  scaled_value = (absolute_value * (double)scale) + 0.5;
+  scaled_value = absolute_value * (double)scale;
+  if (!ezo_common_is_finite(scaled_value)) {
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
+
+  /*
+   * Nudge the half-way boundary slightly to compensate for common binary
+   * floating-point representation error in decimal command inputs such as
+   * 1.005 or 2.675.
+   */
+  scaled_value += 0.5 + ((double)scale * DBL_EPSILON * 8.0);
   scaled_integer = (uint64_t)scaled_value;
   integer_part = scaled_integer / scale;
   fractional_part = scaled_integer % scale;

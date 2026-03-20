@@ -85,6 +85,8 @@ I2C response semantics:
 - first byte is the device status byte
 - text and raw response reads are explicit separate paths
 - valid but unsuccessful device statuses still return `EZO_OK`
+- send helpers clear the cached last status to `EZO_STATUS_UNKNOWN` before a new command
+- read helpers update the cached last status from the decoded status byte
 
 I2C status-byte mapping:
 
@@ -112,7 +114,10 @@ Primary UART C entry points:
 - `ezo_uart_send_command_with_float()`
 - `ezo_uart_send_read()`
 - `ezo_uart_send_read_with_temp_comp()`
+- `ezo_uart_read_line()`
 - `ezo_uart_read_response()`
+- `ezo_uart_response_kind_is_control()`
+- `ezo_uart_response_kind_is_terminal()`
 - `ezo_uart_discard_input()`
 
 UART transport contract:
@@ -141,7 +146,8 @@ UART framing rules:
 
 - public send helpers accept command text without terminators
 - the core appends a single `\r`
-- responses are read until a single `\r`
+- `ezo_uart_read_line()` reads one CR-terminated line
+- `ezo_uart_read_response()` is a compatibility wrapper around that same one-line primitive
 - returned buffers are null-terminated on success
 - `response_len` excludes the null terminator
 
@@ -150,16 +156,31 @@ UART response classification:
 - `EZO_UART_RESPONSE_DATA`: any successful non-empty line that is not a control token
 - `EZO_UART_RESPONSE_OK`: exact `*OK`
 - `EZO_UART_RESPONSE_ERROR`: exact `*ER`
+- `EZO_UART_RESPONSE_OVER_VOLTAGE`: exact `*OV`
+- `EZO_UART_RESPONSE_UNDER_VOLTAGE`: exact `*UV`
+- `EZO_UART_RESPONSE_RESET`: exact `*RS`
+- `EZO_UART_RESPONSE_READY`: exact `*RE`
+- `EZO_UART_RESPONSE_SLEEP`: exact `*SL`
+- `EZO_UART_RESPONSE_WAKE`: exact `*WA`
+- `EZO_UART_RESPONSE_DONE`: exact `*DONE`
 - `EZO_UART_RESPONSE_UNKNOWN`: initial or failure state
 
 Rules:
 
 1. `*OK` and `*ER` are device responses, not transport errors.
 2. A valid `*ER` response still returns `EZO_OK`; callers inspect the response kind.
-3. Zero-length or incomplete lines return `EZO_ERR_PROTOCOL`.
-4. Buffer exhaustion before `\r` returns `EZO_ERR_BUFFER_TOO_SMALL`.
-5. v1 does not expose a raw UART response API.
-6. v1 does not expose a UART C++ wrapper.
+3. The low-level UART primitive reads one line, not an entire command-response sequence.
+4. Multi-line sequences are caller-owned or higher-layer-owned flows built on repeated line reads.
+5. `ezo_uart_response_kind_is_control()` identifies non-data control/status tokens.
+6. `ezo_uart_response_kind_is_terminal()` identifies line kinds that can complete a sequence without implying that all sequences are one line long.
+7. Startup or power-state tokens such as `*WA`, `*RE`, and `*RS` are surfaced as valid control events; the core does not hide them.
+8. Higher layers that need a clean workflow boundary should consume or discard stale continuous output and trailing status lines before assuming the next line belongs to a new command.
+9. Shipping defaults such as continuous mode enabled or `*OK` enabled are only bootstrapping heuristics; deterministic higher layers should verify or configure the mode they depend on.
+10. `ezo_uart_discard_input()` is the explicit resynchronization tool when a caller abandons a sequence or wants to drop stale input.
+11. Zero-length or incomplete lines return `EZO_ERR_PROTOCOL`.
+12. Buffer exhaustion before `\r` returns `EZO_ERR_BUFFER_TOO_SMALL`.
+13. v1 does not expose a raw UART response API.
+14. v1 does not expose a UART C++ wrapper.
 
 ## Validation Boundaries
 

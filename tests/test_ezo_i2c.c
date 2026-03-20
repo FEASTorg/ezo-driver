@@ -2,6 +2,7 @@
 #include "tests/fakes/ezo_fake_transport.h"
 
 #include <assert.h>
+#include <math.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -81,6 +82,67 @@ static void test_send_command_with_float_rejects_excess_precision(void) {
                                        EZO_COMMAND_GENERIC,
                                        NULL);
   assert(result == EZO_ERR_INVALID_ARGUMENT);
+}
+
+static void test_send_command_with_float_rounds_halfway_decimal_up(void) {
+  ezo_fake_transport_t fake;
+  ezo_i2c_device_t device;
+  ezo_result_t result;
+
+  ezo_fake_transport_init(&fake);
+  result = ezo_device_init(&device, 100, ezo_fake_transport_vtable(), &fake);
+  assert(result == EZO_OK);
+
+  result = ezo_send_command_with_float(&device,
+                                       "t,",
+                                       1.005,
+                                       2,
+                                       EZO_COMMAND_GENERIC,
+                                       NULL);
+  assert(result == EZO_OK);
+  assert(fake.last_tx_len == strlen("t,1.01"));
+  assert(memcmp(fake.last_tx_bytes, "t,1.01", strlen("t,1.01")) == 0);
+}
+
+static void test_send_command_with_float_rejects_non_finite_value(void) {
+  ezo_fake_transport_t fake;
+  ezo_i2c_device_t device;
+  ezo_result_t result;
+
+  ezo_fake_transport_init(&fake);
+  result = ezo_device_init(&device, 100, ezo_fake_transport_vtable(), &fake);
+  assert(result == EZO_OK);
+
+  result = ezo_send_command_with_float(&device,
+                                       "t,",
+                                       NAN,
+                                       2,
+                                       EZO_COMMAND_GENERIC,
+                                       NULL);
+  assert(result == EZO_ERR_INVALID_ARGUMENT);
+}
+
+static void test_send_command_resets_last_device_status(void) {
+  static const uint8_t response[] = {1, '7', '.', '1', '2', 0};
+  ezo_fake_transport_t fake;
+  ezo_i2c_device_t device;
+  ezo_device_status_t status = EZO_STATUS_UNKNOWN;
+  ezo_result_t result;
+  char buffer[16];
+  size_t response_len = 0;
+
+  ezo_fake_transport_init(&fake);
+  ezo_fake_transport_set_response(&fake, response, sizeof(response));
+  result = ezo_device_init(&device, 100, ezo_fake_transport_vtable(), &fake);
+  assert(result == EZO_OK);
+
+  result = ezo_read_response(&device, buffer, sizeof(buffer), &response_len, &status);
+  assert(result == EZO_OK);
+  assert(ezo_device_get_last_status(&device) == EZO_STATUS_SUCCESS);
+
+  result = ezo_send_command(&device, "status", EZO_COMMAND_GENERIC, NULL);
+  assert(result == EZO_OK);
+  assert(ezo_device_get_last_status(&device) == EZO_STATUS_UNKNOWN);
 }
 
 static void test_read_response_success_and_parse(void) {
@@ -312,6 +374,9 @@ int main(void) {
   test_send_command_with_float_formats_value();
   test_send_command_with_float_rounds_negative_values();
   test_send_command_with_float_rejects_excess_precision();
+  test_send_command_with_float_rounds_halfway_decimal_up();
+  test_send_command_with_float_rejects_non_finite_value();
+  test_send_command_resets_last_device_status();
   test_read_response_success_and_parse();
   test_read_response_raw_preserves_embedded_zero_bytes();
   test_read_response_raw_detects_buffer_too_small();

@@ -14,7 +14,8 @@ At the repo level, UART is treated as a line-oriented ASCII protocol:
 
 - callers pass command text without terminators
 - `ezo_uart_send_command()` appends a single carriage return
-- `ezo_uart_read_response()` reads until the next carriage return
+- `ezo_uart_read_line()` reads one CR-terminated line
+- `ezo_uart_read_response()` is a compatibility wrapper around that same one-line primitive
 - successful reads return a null-terminated text line
 
 That matches the contract in [`src/ezo_uart.h`](../../src/ezo_uart.h) and the framing logic in [`src/ezo_uart.c`](../../src/ezo_uart.c).
@@ -27,13 +28,48 @@ UART responses fall into three practical buckets:
 2. command acknowledgements such as `*OK`
 3. control or state tokens such as reset, wake, sleep, and power-condition markers
 
-The current repo surface models only:
+The current repo surface now distinguishes:
 
 - `DATA`
 - `*OK`
 - `*ER`
+- `*OV`
+- `*UV`
+- `*RS`
+- `*RE`
+- `*SL`
+- `*WA`
+- `*DONE`
 
-That is enough for the present baseline, but vendor documentation for multiple products also defines additional control tokens such as over-voltage, under-voltage, reset, ready, sleep, and wake indications. Today those lines are treated as generic data by the core.
+Those tokens remain transport-level classifications. The core still does not interpret them as product behavior.
+
+## Response Sequences
+
+Many UART workflows are not truly one-command, one-line exchanges.
+
+Examples include:
+
+- a data line followed by trailing `*OK`
+- export flows ending in `*DONE`
+- memory or recall flows that emit multiple data lines before a final status token
+- startup, sleep, wake, reset, and ready lines that can appear between higher-level operations
+
+The repo-level rule is therefore:
+
+- the low-level primitive reads one line
+- callers or higher layers consume sequences by reading multiple lines
+- `ezo_uart_discard_input()` is the explicit resynchronization tool when abandoning stale or unwanted trailing lines
+
+## Synchronization Rules
+
+The low-level core does not try to infer workflow boundaries across lines.
+
+Higher layers should therefore follow these rules:
+
+- treat startup and power-state lines such as wake, ready, and reset as valid control events, not as transport corruption
+- consume or discard stale continuous output before starting a workflow that expects a specific next line
+- consume trailing status tokens such as `*OK` or `*DONE`, or explicitly discard them before reusing the transport
+- treat shipping defaults such as continuous mode enabled or `*OK` enabled as heuristics only, not as a guaranteed runtime state
 
 ## Single Read And Continuous Read
 
@@ -69,7 +105,7 @@ The current UART layer intentionally does not:
 
 - expose raw byte frames
 - hide retries or delays
-- normalize product-specific control tokens
+- collapse multi-line command workflows into one implicit read helper
 - infer CSV schemas for multi-output products
 
 That keeps the UART core transport-focused. If the repo later grows typed UART helpers, they should sit above this layer and be product-aware.

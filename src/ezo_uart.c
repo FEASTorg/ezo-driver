@@ -35,12 +35,40 @@ static ezo_result_t ezo_uart_validate_command(const char *command) {
 
 static ezo_uart_response_kind_t ezo_uart_classify_response(const char *buffer,
                                                            size_t buffer_len) {
+  if (buffer_len == 5 && memcmp(buffer, "*DONE", 5) == 0) {
+    return EZO_UART_RESPONSE_DONE;
+  }
+
   if (buffer_len == 3 && memcmp(buffer, "*OK", 3) == 0) {
     return EZO_UART_RESPONSE_OK;
   }
 
   if (buffer_len == 3 && memcmp(buffer, "*ER", 3) == 0) {
     return EZO_UART_RESPONSE_ERROR;
+  }
+
+  if (buffer_len == 3 && memcmp(buffer, "*OV", 3) == 0) {
+    return EZO_UART_RESPONSE_OVER_VOLTAGE;
+  }
+
+  if (buffer_len == 3 && memcmp(buffer, "*UV", 3) == 0) {
+    return EZO_UART_RESPONSE_UNDER_VOLTAGE;
+  }
+
+  if (buffer_len == 3 && memcmp(buffer, "*RS", 3) == 0) {
+    return EZO_UART_RESPONSE_RESET;
+  }
+
+  if (buffer_len == 3 && memcmp(buffer, "*RE", 3) == 0) {
+    return EZO_UART_RESPONSE_READY;
+  }
+
+  if (buffer_len == 3 && memcmp(buffer, "*SL", 3) == 0) {
+    return EZO_UART_RESPONSE_SLEEP;
+  }
+
+  if (buffer_len == 3 && memcmp(buffer, "*WA", 3) == 0) {
+    return EZO_UART_RESPONSE_WAKE;
   }
 
   return EZO_UART_RESPONSE_DATA;
@@ -155,11 +183,11 @@ ezo_result_t ezo_uart_send_read_with_temp_comp(ezo_uart_device_t *device,
                                           timing_hint);
 }
 
-ezo_result_t ezo_uart_read_response(ezo_uart_device_t *device,
-                                    char *buffer,
-                                    size_t buffer_len,
-                                    size_t *response_len,
-                                    ezo_uart_response_kind_t *response_kind) {
+ezo_result_t ezo_uart_read_line(ezo_uart_device_t *device,
+                                char *buffer,
+                                size_t buffer_len,
+                                size_t *response_len,
+                                ezo_uart_response_kind_t *response_kind) {
   size_t used = 0;
   ezo_result_t result = EZO_OK;
 
@@ -217,6 +245,52 @@ ezo_result_t ezo_uart_read_response(ezo_uart_device_t *device,
   *response_kind = ezo_uart_classify_response(buffer, used);
   device->last_response_kind = (uint8_t)(*response_kind);
   return EZO_OK;
+}
+
+ezo_result_t ezo_uart_read_response(ezo_uart_device_t *device,
+                                    char *buffer,
+                                    size_t buffer_len,
+                                    size_t *response_len,
+                                    ezo_uart_response_kind_t *response_kind) {
+  return ezo_uart_read_line(device, buffer, buffer_len, response_len, response_kind);
+}
+
+int ezo_uart_response_kind_is_control(ezo_uart_response_kind_t response_kind) {
+  switch (response_kind) {
+  case EZO_UART_RESPONSE_OK:
+  case EZO_UART_RESPONSE_ERROR:
+  case EZO_UART_RESPONSE_OVER_VOLTAGE:
+  case EZO_UART_RESPONSE_UNDER_VOLTAGE:
+  case EZO_UART_RESPONSE_RESET:
+  case EZO_UART_RESPONSE_READY:
+  case EZO_UART_RESPONSE_SLEEP:
+  case EZO_UART_RESPONSE_WAKE:
+  case EZO_UART_RESPONSE_DONE:
+    return 1;
+  case EZO_UART_RESPONSE_UNKNOWN:
+  case EZO_UART_RESPONSE_DATA:
+  default:
+    return 0;
+  }
+}
+
+int ezo_uart_response_kind_is_terminal(ezo_uart_response_kind_t response_kind) {
+  switch (response_kind) {
+  case EZO_UART_RESPONSE_OK:
+  case EZO_UART_RESPONSE_ERROR:
+  case EZO_UART_RESPONSE_DONE:
+    return 1;
+  case EZO_UART_RESPONSE_UNKNOWN:
+  case EZO_UART_RESPONSE_DATA:
+  case EZO_UART_RESPONSE_OVER_VOLTAGE:
+  case EZO_UART_RESPONSE_UNDER_VOLTAGE:
+  case EZO_UART_RESPONSE_RESET:
+  case EZO_UART_RESPONSE_READY:
+  case EZO_UART_RESPONSE_SLEEP:
+  case EZO_UART_RESPONSE_WAKE:
+  default:
+    return 0;
+  }
 }
 
 ezo_result_t ezo_uart_discard_input(ezo_uart_device_t *device) {

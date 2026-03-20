@@ -108,6 +108,7 @@ Primary implementation files:
 - [`docs/ezo/README.md`](./docs/ezo/README.md): curated EZO product and protocol context for this repo
 - [`docs/architecture.md`](./docs/architecture.md): structure, boundaries, packaging, validation
 - [`docs/api-contract.md`](./docs/api-contract.md): behavioral contract for the public API
+- [`docs/canonical-library-direction.md`](./docs/canonical-library-direction.md): stable long-term direction for the canonical product-aware library
 - [`CHANGELOG.md`](./CHANGELOG.md): tracked change history
 
 ## Scope Notes

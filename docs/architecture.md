@@ -57,8 +57,8 @@ Everything else is supporting material:
 
 4. UART core
    - line-oriented send flow
-   - CR-terminated response assembly
-   - response classification (`DATA`, `*OK`, `*ER`)
+   - CR-terminated single-line read primitive
+   - response classification and small sequence-oriented helpers
 
 5. C++ wrapper
    - thin convenience layer over the I2C C API
@@ -132,6 +132,7 @@ Arduino packaging now covers both the I2C and UART Arduino-facing headers. Host-
 A new developer should treat these files as the main entry points:
 
 - `README.md` for first-contact orientation
+- `docs/canonical-library-direction.md` for the long-term product-aware direction beyond the current transport baseline
 - `docs/ezo/README.md` for product-family and protocol context
 - `src/ezo.h` for shared types and helpers
 - `src/ezo_i2c.h` for the I2C C API

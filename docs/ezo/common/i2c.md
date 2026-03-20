@@ -41,6 +41,8 @@ An important contract point is that a valid device status is separate from the l
 
 - `EZO_OK` means the transport and frame decode succeeded
 - the device status tells the caller whether the sensor had data, was ready, or rejected the request
+- send helpers clear the cached last status before a new command
+- read helpers refresh that cached status from the next decoded response
 
 ## Timing And Read Discipline
 

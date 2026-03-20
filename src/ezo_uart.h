@@ -16,7 +16,14 @@ typedef enum {
   EZO_UART_RESPONSE_UNKNOWN = 0,
   EZO_UART_RESPONSE_DATA,
   EZO_UART_RESPONSE_OK,
-  EZO_UART_RESPONSE_ERROR
+  EZO_UART_RESPONSE_ERROR,
+  EZO_UART_RESPONSE_OVER_VOLTAGE,
+  EZO_UART_RESPONSE_UNDER_VOLTAGE,
+  EZO_UART_RESPONSE_RESET,
+  EZO_UART_RESPONSE_READY,
+  EZO_UART_RESPONSE_SLEEP,
+  EZO_UART_RESPONSE_WAKE,
+  EZO_UART_RESPONSE_DONE
 } ezo_uart_response_kind_t;
 
 typedef struct ezo_uart_transport {
@@ -63,11 +70,20 @@ ezo_result_t ezo_uart_send_read_with_temp_comp(ezo_uart_device_t *device,
                                                uint8_t decimals,
                                                ezo_timing_hint_t *timing_hint);
 
+ezo_result_t ezo_uart_read_line(ezo_uart_device_t *device,
+                                char *buffer,
+                                size_t buffer_len,
+                                size_t *response_len,
+                                ezo_uart_response_kind_t *response_kind);
+
 ezo_result_t ezo_uart_read_response(ezo_uart_device_t *device,
                                     char *buffer,
                                     size_t buffer_len,
                                     size_t *response_len,
                                     ezo_uart_response_kind_t *response_kind);
+
+int ezo_uart_response_kind_is_control(ezo_uart_response_kind_t response_kind);
+int ezo_uart_response_kind_is_terminal(ezo_uart_response_kind_t response_kind);
 
 ezo_result_t ezo_uart_discard_input(ezo_uart_device_t *device);
 

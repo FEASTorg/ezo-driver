@@ -161,6 +161,8 @@ ezo_result_t ezo_send_command(ezo_i2c_device_t *device,
     }
   }
 
+  device->last_device_status = (uint8_t)EZO_STATUS_UNKNOWN;
+
   return device->transport->write_then_read(device->transport_context,
                                             device->address,
                                             (const uint8_t *)command,
