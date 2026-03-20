@@ -77,7 +77,7 @@ static void test_product_metadata_registry_exposes_defaults_and_support_tiers(vo
   assert(ph->default_response_codes == EZO_PRODUCT_DEFAULT_ENABLED);
   assert(ph->default_output_schema == EZO_PRODUCT_OUTPUT_SCHEMA_SCALAR_SINGLE);
   assert(ph->default_output_count == 1);
-  assert(ph->support_tier == EZO_PRODUCT_SUPPORT_METADATA);
+  assert(ph->support_tier == EZO_PRODUCT_SUPPORT_TYPED_READ);
 
   assert(ec != NULL);
   assert(ec->default_output_schema == EZO_PRODUCT_OUTPUT_SCHEMA_QUERY_REQUIRED);
@@ -88,6 +88,8 @@ static void test_product_metadata_registry_exposes_defaults_and_support_tiers(vo
   assert(hum->default_output_count == 1);
 
   assert(unknown == NULL);
+  assert(ezo_product_get_support_tier(EZO_PRODUCT_ORP) == EZO_PRODUCT_SUPPORT_TYPED_READ);
+  assert(ezo_product_get_support_tier(EZO_PRODUCT_RTD) == EZO_PRODUCT_SUPPORT_TYPED_READ);
   assert(ezo_product_get_support_tier(EZO_PRODUCT_UNKNOWN) == EZO_PRODUCT_SUPPORT_UNKNOWN);
 }
 
@@ -149,9 +151,21 @@ static void test_product_timing_lookup_uses_transport_specific_profiles(void) {
                                      &hint) == EZO_OK);
   assert(hint.wait_ms == 1300);
 
+  assert(ezo_product_get_timing_hint(EZO_PRODUCT_ORP,
+                                     EZO_PRODUCT_TRANSPORT_UART,
+                                     EZO_COMMAND_CALIBRATION,
+                                     &hint) == EZO_OK);
+  assert(hint.wait_ms == 900);
+
   assert(ezo_product_get_timing_hint(EZO_PRODUCT_RTD,
                                      EZO_PRODUCT_TRANSPORT_I2C,
                                      EZO_COMMAND_READ,
+                                     &hint) == EZO_OK);
+  assert(hint.wait_ms == 600);
+
+  assert(ezo_product_get_timing_hint(EZO_PRODUCT_RTD,
+                                     EZO_PRODUCT_TRANSPORT_UART,
+                                     EZO_COMMAND_CALIBRATION,
                                      &hint) == EZO_OK);
   assert(hint.wait_ms == 600);
 

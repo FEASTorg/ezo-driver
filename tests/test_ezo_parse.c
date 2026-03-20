@@ -45,6 +45,14 @@ static void test_parse_query_response_allows_prefix_only(void) {
   assert(field_count == 0);
 }
 
+static void test_parse_text_span_uint32_reads_decimal_tokens(void) {
+  ezo_text_span_t value_span = {"225", 3};
+  uint32_t value = 0;
+
+  assert(ezo_parse_text_span_uint32(value_span, &value) == EZO_OK);
+  assert(value == 225U);
+}
+
 static void test_parse_prefixed_fields_rejects_wrong_prefix(void) {
   static const char response[] = "?Name,my-pH";
   ezo_text_span_t fields[1];
@@ -187,6 +195,7 @@ int main(void) {
   test_parse_csv_fields_trims_and_preserves_empty_fields();
   test_parse_query_response_extracts_prefix_and_fields();
   test_parse_query_response_allows_prefix_only();
+  test_parse_text_span_uint32_reads_decimal_tokens();
   test_parse_prefixed_fields_rejects_wrong_prefix();
   test_uart_sequence_tracks_data_and_terminal_status();
   test_uart_sequence_tracks_nonterminal_control_tokens();

@@ -20,6 +20,7 @@ Current implementation includes:
 - shared `ezo.h` surface for results, timing hints, and numeric parsing
 - product identity and metadata for the initial six documented EZO families
 - shared query/CSV parsing, UART sequence-state helpers, and canonical output schemas
+- typed scalar product modules for pH, ORP, and RTD
 - complete I2C core with text and raw response decoding
 - complete UART core with line-based response handling
 - Arduino integrations for both I2C and UART
@@ -33,7 +34,8 @@ Current support matrix:
 
 - I2C: C core, I2C C++ wrapper, Arduino `TwoWire`, Linux I2C adapter
 - UART: C core, Arduino `Stream`, Linux host POSIX serial adapter
-- Product foundation: identity, metadata, timing fallback, parse/schema utilities for the initial six documented families
+- Product modules: typed read/query support for pH, ORP, and RTD
+- Product foundation: identity, metadata, timing fallback, and parse/schema utilities for the initial six documented families
 - Shared: host-side tests and Arduino compile validation
 
 ## Layout
@@ -64,6 +66,7 @@ cmake -S . -B build -DEZO_BUILD_EXAMPLES=ON -DEZO_BUILD_LINUX_ADAPTER=ON -DEZO_B
 ## Validation
 
 - host CI builds and runs C and C++ tests for the shared, parse/schema, I2C, UART, and product-foundation paths
+- host CI also runs typed scalar-product tests for pH, ORP, and RTD
 - Linux I2C and Linux host POSIX UART adapter behavior are covered by host-side tests
 - PlatformIO CI compile-checks Arduino I2C and UART examples for `uno`, `nanoatmega328`, and `esp32dev`
 - Arduino IDE validation is manual by design
@@ -80,6 +83,7 @@ cmake -S . -B build -DEZO_BUILD_EXAMPLES=ON -DEZO_BUILD_LINUX_ADAPTER=ON -DEZO_B
 - [`examples/arduino_uart_smoke/arduino_uart_smoke.ino`](./examples/arduino_uart_smoke/arduino_uart_smoke.ino): minimal UART C API smoke path
 - [`examples/arduino_uart_read/arduino_uart_read.ino`](./examples/arduino_uart_read/arduino_uart_read.ino): UART read flow with explicit timing and parse path
 - [`examples/linux_read.c`](./examples/linux_read.c): minimal Linux I2C transport example
+- [`examples/linux_ph_read.c`](./examples/linux_ph_read.c): typed Linux I2C pH read example
 - [`examples/linux_uart_read.c`](./examples/linux_uart_read.c): minimal Linux host POSIX UART transport example
 
 ## Entry Points
@@ -92,7 +96,10 @@ Primary public headers:
 - [`src/ezo_i2c.hpp`](./src/ezo_i2c.hpp)
 - [`src/ezo_i2c_arduino_wire.h`](./src/ezo_i2c_arduino_wire.h)
 - [`src/ezo_i2c_linux_i2c.h`](./src/ezo_i2c_linux_i2c.h)
+- [`src/ezo_orp.h`](./src/ezo_orp.h)
+- [`src/ezo_ph.h`](./src/ezo_ph.h)
 - [`src/ezo_product.h`](./src/ezo_product.h)
+- [`src/ezo_rtd.h`](./src/ezo_rtd.h)
 - [`src/ezo_schema.h`](./src/ezo_schema.h)
 - [`src/ezo_uart.h`](./src/ezo_uart.h)
 - [`src/ezo_uart_posix_serial.h`](./src/ezo_uart_posix_serial.h)
@@ -105,8 +112,11 @@ Primary implementation files:
 - [`src/ezo_i2c.c`](./src/ezo_i2c.c)
 - [`src/ezo_i2c_arduino_wire.cpp`](./src/ezo_i2c_arduino_wire.cpp)
 - [`platform/linux/ezo_i2c_linux_i2c.c`](./platform/linux/ezo_i2c_linux_i2c.c)
+- [`src/ezo_orp.c`](./src/ezo_orp.c)
+- [`src/ezo_ph.c`](./src/ezo_ph.c)
 - [`src/ezo_parse.c`](./src/ezo_parse.c)
 - [`src/ezo_product.c`](./src/ezo_product.c)
+- [`src/ezo_rtd.c`](./src/ezo_rtd.c)
 - [`src/ezo_schema.c`](./src/ezo_schema.c)
 - [`src/ezo_uart.c`](./src/ezo_uart.c)
 - [`platform/linux/ezo_uart_posix_serial.c`](./platform/linux/ezo_uart_posix_serial.c)
@@ -124,7 +134,8 @@ Primary implementation files:
 
 Intentionally out of scope for the current baseline:
 
-- typed pH/EC/RTD helper APIs
+- typed EC/DO/HUM helper APIs
+- broad typed control-plane helpers such as export/import and mode switching
 - async/state-machine behavior
 - hidden retries or hidden delays
 - compatibility with the legacy Atlas API shape

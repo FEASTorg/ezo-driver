@@ -1,5 +1,6 @@
 #include "ezo_parse.h"
 
+#include <stdint.h>
 #include <string.h>
 
 static int ezo_parse_is_space(char value) {
@@ -52,6 +53,36 @@ int ezo_text_span_equals_cstr(ezo_text_span_t span, const char *text) {
   }
 
   return memcmp(span.text, text, text_len) == 0;
+}
+
+ezo_result_t ezo_parse_text_span_uint32(ezo_text_span_t span, uint32_t *value_out) {
+  size_t i = 0;
+  uint32_t value = 0;
+
+  if (value_out == NULL) {
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
+
+  if (span.text == NULL || span.length == 0) {
+    return EZO_ERR_PARSE;
+  }
+
+  for (i = 0; i < span.length; ++i) {
+    const char ch = span.text[i];
+
+    if (ch < '0' || ch > '9') {
+      return EZO_ERR_PARSE;
+    }
+
+    if (value > (UINT32_MAX - (uint32_t)(ch - '0')) / 10U) {
+      return EZO_ERR_PARSE;
+    }
+
+    value = (value * 10U) + (uint32_t)(ch - '0');
+  }
+
+  *value_out = value;
+  return EZO_OK;
 }
 
 ezo_result_t ezo_parse_text_span_double(ezo_text_span_t span, double *value_out) {

@@ -15,7 +15,7 @@ static const ezo_product_registry_entry_t ezo_product_registry[] = {
             EZO_PRODUCT_PH,
             "pH",
             "pH",
-            EZO_PRODUCT_SUPPORT_METADATA,
+            EZO_PRODUCT_SUPPORT_TYPED_READ,
             EZO_PRODUCT_TRANSPORT_UART,
             99,
             EZO_PRODUCT_DEFAULT_ENABLED,
@@ -28,8 +28,8 @@ static const ezo_product_registry_entry_t ezo_product_registry[] = {
             EZO_PRODUCT_FAMILY_ACQUISITION | EZO_PRODUCT_FAMILY_CALIBRATION |
                 EZO_PRODUCT_FAMILY_CALIBRATION_TRANSFER | EZO_PRODUCT_FAMILY_IDENTITY |
                 EZO_PRODUCT_FAMILY_DEVICE_CONTROL | EZO_PRODUCT_FAMILY_PROTOCOL_CONTROL,
-            {300U, 900U, 900U, 1200U},
-            {300U, 900U, 900U, 1200U},
+            {300U, 900U, 900U, 900U},
+            {300U, 900U, 900U, 900U},
         },
     },
     {
@@ -38,7 +38,7 @@ static const ezo_product_registry_entry_t ezo_product_registry[] = {
             EZO_PRODUCT_ORP,
             "ORP",
             "ORP",
-            EZO_PRODUCT_SUPPORT_METADATA,
+            EZO_PRODUCT_SUPPORT_TYPED_READ,
             EZO_PRODUCT_TRANSPORT_UART,
             98,
             EZO_PRODUCT_DEFAULT_ENABLED,
@@ -50,8 +50,8 @@ static const ezo_product_registry_entry_t ezo_product_registry[] = {
             EZO_PRODUCT_FAMILY_ACQUISITION | EZO_PRODUCT_FAMILY_CALIBRATION |
                 EZO_PRODUCT_FAMILY_CALIBRATION_TRANSFER | EZO_PRODUCT_FAMILY_IDENTITY |
                 EZO_PRODUCT_FAMILY_DEVICE_CONTROL | EZO_PRODUCT_FAMILY_PROTOCOL_CONTROL,
-            {300U, 1000U, 0U, 1200U},
-            {300U, 1000U, 0U, 1200U},
+            {300U, 1000U, 0U, 900U},
+            {300U, 1000U, 0U, 900U},
         },
     },
     {
@@ -110,7 +110,7 @@ static const ezo_product_registry_entry_t ezo_product_registry[] = {
             EZO_PRODUCT_RTD,
             "RTD",
             "RTD",
-            EZO_PRODUCT_SUPPORT_METADATA,
+            EZO_PRODUCT_SUPPORT_TYPED_READ,
             EZO_PRODUCT_TRANSPORT_UART,
             102,
             EZO_PRODUCT_DEFAULT_ENABLED,
@@ -123,8 +123,8 @@ static const ezo_product_registry_entry_t ezo_product_registry[] = {
             EZO_PRODUCT_FAMILY_ACQUISITION | EZO_PRODUCT_FAMILY_CALIBRATION |
                 EZO_PRODUCT_FAMILY_CALIBRATION_TRANSFER | EZO_PRODUCT_FAMILY_IDENTITY |
                 EZO_PRODUCT_FAMILY_DEVICE_CONTROL | EZO_PRODUCT_FAMILY_PROTOCOL_CONTROL,
-            {300U, 1000U, 0U, 1200U},
-            {300U, 600U, 0U, 1200U},
+            {300U, 1000U, 0U, 600U},
+            {300U, 600U, 0U, 600U},
         },
     },
     {

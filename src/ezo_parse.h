@@ -38,6 +38,8 @@ int ezo_text_span_is_empty(ezo_text_span_t span);
 
 int ezo_text_span_equals_cstr(ezo_text_span_t span, const char *text);
 
+ezo_result_t ezo_parse_text_span_uint32(ezo_text_span_t span, uint32_t *value_out);
+
 ezo_result_t ezo_parse_text_span_double(ezo_text_span_t span, double *value_out);
 
 ezo_result_t ezo_parse_csv_fields(const char *buffer,

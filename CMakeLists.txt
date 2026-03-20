@@ -20,7 +20,10 @@ add_library(ezo_core STATIC
   src/ezo_common.c
   src/ezo_i2c.c
   src/ezo_parse.c
+  src/ezo_orp.c
+  src/ezo_ph.c
   src/ezo_product.c
+  src/ezo_rtd.c
   src/ezo_schema.c
   src/ezo_uart.c
 )
@@ -132,6 +135,63 @@ if(EZO_BUILD_TESTS)
     COMMAND ezo_parse_tests
   )
 
+  add_executable(ezo_ph_tests
+    tests/fakes/ezo_fake_transport.c
+    tests/fakes/ezo_fake_uart_transport.c
+    tests/test_ezo_ph.c
+  )
+
+  target_include_directories(ezo_ph_tests
+    PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+
+  target_link_libraries(ezo_ph_tests PRIVATE ezo_core)
+
+  add_test(
+    NAME ezo_ph_tests
+    COMMAND ezo_ph_tests
+  )
+
+  add_executable(ezo_orp_tests
+    tests/fakes/ezo_fake_transport.c
+    tests/fakes/ezo_fake_uart_transport.c
+    tests/test_ezo_orp.c
+  )
+
+  target_include_directories(ezo_orp_tests
+    PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+
+  target_link_libraries(ezo_orp_tests PRIVATE ezo_core)
+
+  add_test(
+    NAME ezo_orp_tests
+    COMMAND ezo_orp_tests
+  )
+
+  add_executable(ezo_rtd_tests
+    tests/fakes/ezo_fake_transport.c
+    tests/fakes/ezo_fake_uart_transport.c
+    tests/test_ezo_rtd.c
+  )
+
+  target_include_directories(ezo_rtd_tests
+    PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+
+  target_link_libraries(ezo_rtd_tests PRIVATE ezo_core)
+
+  add_test(
+    NAME ezo_rtd_tests
+    COMMAND ezo_rtd_tests
+  )
+
   if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_executable(ezo_i2c_linux_adapter_tests
       tests/test_linux_adapter.c
@@ -224,6 +284,12 @@ if(EZO_BUILD_EXAMPLES AND EZO_BUILD_LINUX_ADAPTER)
   )
 
   target_link_libraries(ezo_i2c_linux_read_example PRIVATE ezo_i2c_linux_adapter)
+
+  add_executable(ezo_ph_linux_read_example
+    examples/linux_ph_read.c
+  )
+
+  target_link_libraries(ezo_ph_linux_read_example PRIVATE ezo_i2c_linux_adapter)
 endif()
 
 if(EZO_BUILD_EXAMPLES AND EZO_BUILD_POSIX_UART_ADAPTER AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
