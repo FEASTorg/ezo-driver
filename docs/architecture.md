@@ -99,6 +99,7 @@ PlatformIO-specific rule:
 A new developer should treat these files as the main entry points:
 
 - `README.md` for first-contact orientation
-- `src/ezo_i2c/ezo_i2c.h` for the C API
-- `src/ezo_i2c/ezo_i2c.hpp` for the C++ wrapper
+- `src/ezo_i2c.h` for the C API
+- `src/ezo_i2c.hpp` for the C++ wrapper
+- `src/ezo_i2c_arduino_wire.h` for Arduino sketch-facing integration
 - `src/ezo_i2c.c` for core behavior

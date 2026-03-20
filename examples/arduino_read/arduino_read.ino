@@ -1,7 +1,7 @@
 #include <Wire.h>
 
-#include "ezo_i2c/arduino_wire.h"
-#include "ezo_i2c/ezo_i2c.hpp"
+#include <ezo_i2c_arduino_wire.h>
+#include <ezo_i2c.hpp>
 
 namespace {
 
