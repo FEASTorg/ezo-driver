@@ -2,13 +2,34 @@
 
 All notable tracked changes to this rewrite will be recorded here.
 
-## [0.1.0] - current baseline
+## [0.2.0] - current baseline
 
 ### Added
 
-- C99 transport-agnostic core for EZO command formatting, response decoding, and numeric helpers
-- shared `ezo.h` public surface for result types, timing hints, and numeric parsing
+- UART reference material under `_reference/Ezo_uart_lib/` to anchor the new mode against the original Atlas behavior
+- shared formatting and parsing helpers in `ezo_common`
+- shared public `ezo.h` surface for result types, timing hints, and numeric parsing
 - UART C core with line-based response framing and response classification
+- Arduino `Stream` transport adapter for UART
+- focused Arduino UART smoke and read examples
+- host-side fake UART transport coverage and UART core tests
+
+### Changed
+
+- repositioned the repo and tracked docs around an explicit multi-mode `ezo-driver` surface
+- aligned CMake and package metadata with the multi-mode product scope
+- expanded PlatformIO Arduino compile CI to include UART examples
+
+### Notes
+
+- UART platform support currently means Arduino `Stream`
+- POSIX UART support and a UART C++ wrapper are intentionally deferred
+
+## [0.1.0] - initial I2C baseline
+
+### Added
+
+- C99 transport-agnostic I2C core for EZO command formatting, response decoding, and numeric helpers
 - thin header-only C++11 wrapper over the I2C C core
 - Arduino `TwoWire` transport adapter for I2C
 - Linux file-descriptor transport adapter for I2C
@@ -21,7 +42,6 @@ All notable tracked changes to this rewrite will be recorded here.
 
 ### Changed
 
-- extracted shared formatting and parsing helpers into `ezo_common`
 - simplified the repo so `src/` is the canonical library root for public headers and Arduino-safe implementation
 - reduced tracked docs to a small handoff-oriented set
 
@@ -29,4 +49,3 @@ All notable tracked changes to this rewrite will be recorded here.
 
 - Arduino IDE validation is manual only
 - `_reference/` remains legacy reference material and is not part of the product surface
-- UART platform adapters are intentionally deferred past the current baseline
