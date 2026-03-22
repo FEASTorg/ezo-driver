@@ -1,7 +1,8 @@
-// UART read example with explicit wait timing.
+// UART read example with explicit response-code bootstrap and `*OK` ownership.
 // On boards without a second hardware serial port, this example uses `Serial` as the
 // sensor stream and does not emit debug output.
 
+#include <ezo_control.h>
 #include <ezo.h>
 #include <ezo_uart.h>
 #include <ezo_uart_arduino_stream.h>
@@ -52,6 +53,22 @@ static void request_reading() {
   delay(hint.wait_ms);
 }
 
+static void ensure_response_codes_enabled() {
+  ezo_timing_hint_t hint;
+  ezo_control_response_code_status_t response_code;
+
+  fail_fast(ezo_control_send_response_code_query_uart(&device, EZO_PRODUCT_UNKNOWN, &hint));
+  delay(hint.wait_ms);
+  fail_fast(ezo_control_read_response_code_uart(&device, &response_code));
+  if (response_code.enabled != 0) {
+    return;
+  }
+
+  fail_fast(ezo_control_send_response_code_set_uart(&device, EZO_PRODUCT_UNKNOWN, 1, &hint));
+  delay(hint.wait_ms);
+  fail_fast(ezo_uart_read_ok(&device));
+}
+
 void setup() {
   begin_streams();
 
@@ -59,6 +76,7 @@ void setup() {
   fail_fast(
       ezo_uart_device_init(&device, ezo_uart_arduino_stream_transport(), &uart_context));
   fail_fast(ezo_uart_discard_input(&device));
+  ensure_response_codes_enabled();
 
   request_reading();
 }
@@ -74,16 +92,15 @@ void loop() {
                                sizeof(response),
                                &response_len,
                                &kind));
+  if (kind != EZO_UART_RESPONSE_DATA ||
+      ezo_parse_double(response, response_len, &value) != EZO_OK) {
+    fail_fast(EZO_ERR_PROTOCOL);
+  }
+  fail_fast(ezo_uart_read_ok(&device));
 
 #if EZO_UART_HAS_DEBUG_STREAM
-  if (kind == EZO_UART_RESPONSE_DATA &&
-      ezo_parse_double(response, response_len, &value) == EZO_OK) {
-    Serial.print("reading: ");
-    Serial.println(value, 3);
-  } else {
-    Serial.print("response: ");
-    Serial.println(response);
-  }
+  Serial.print("reading: ");
+  Serial.println(value, 3);
 #endif
 
   delay(1000);

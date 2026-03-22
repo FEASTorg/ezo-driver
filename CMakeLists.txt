@@ -457,6 +457,12 @@ if(EZO_BUILD_EXAMPLES AND EZO_BUILD_POSIX_UART_ADAPTER AND CMAKE_SYSTEM_NAME STR
   )
 
   target_link_libraries(ezo_uart_linux_read_example PRIVATE ezo_uart_posix_adapter)
+
+  add_executable(ezo_ph_uart_linux_read_example
+    examples/linux_ph_uart_read.c
+  )
+
+  target_link_libraries(ezo_ph_uart_linux_read_example PRIVATE ezo_uart_posix_adapter)
 endif()
 
 install(TARGETS ezo_core ezo_i2c_cpp

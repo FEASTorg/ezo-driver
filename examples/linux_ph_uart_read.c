@@ -1,5 +1,5 @@
 #include "ezo_control.h"
-#include "ezo_uart.h"
+#include "ezo_ph.h"
 #include "ezo_uart_posix_serial.h"
 
 #include <stdio.h>
@@ -51,7 +51,7 @@ static ezo_result_t ensure_response_codes_enabled(ezo_uart_device_t *device) {
   ezo_timing_hint_t hint;
   ezo_control_response_code_status_t response_code;
   ezo_result_t result =
-      ezo_control_send_response_code_query_uart(device, EZO_PRODUCT_UNKNOWN, &hint);
+      ezo_control_send_response_code_query_uart(device, EZO_PRODUCT_PH, &hint);
   if (result != EZO_OK) {
     return result;
   }
@@ -63,7 +63,7 @@ static ezo_result_t ensure_response_codes_enabled(ezo_uart_device_t *device) {
     return result;
   }
 
-  result = ezo_control_send_response_code_set_uart(device, EZO_PRODUCT_UNKNOWN, 1, &hint);
+  result = ezo_control_send_response_code_set_uart(device, EZO_PRODUCT_PH, 1, &hint);
   if (result != EZO_OK) {
     return result;
   }
@@ -78,9 +78,7 @@ int main(int argc, char **argv) {
   ezo_uart_posix_serial_t serial;
   ezo_uart_device_t device;
   ezo_timing_hint_t hint;
-  ezo_uart_response_kind_t kind = EZO_UART_RESPONSE_UNKNOWN;
-  char response[64];
-  size_t response_len = 0;
+  ezo_ph_reading_t reading;
   ezo_result_t result = EZO_OK;
 
   if (argc > 1) {
@@ -117,7 +115,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  result = ezo_uart_send_command(&device, "i", EZO_COMMAND_GENERIC, &hint);
+  result = ezo_ph_send_read_uart(&device, &hint);
   if (result != EZO_OK) {
     ezo_uart_posix_serial_close(&serial);
     return 1;
@@ -125,25 +123,13 @@ int main(int argc, char **argv) {
 
   usleep((useconds_t)(hint.wait_ms * 1000U));
 
-  result = ezo_uart_read_line(&device, response, sizeof(response), &response_len, &kind);
-  if (result != EZO_OK) {
-    ezo_uart_posix_serial_close(&serial);
-    fprintf(stderr, "read failed: %d\n", (int)result);
-    return 1;
-  }
-  if (kind != EZO_UART_RESPONSE_DATA) {
-    ezo_uart_posix_serial_close(&serial);
-    fprintf(stderr, "unexpected response kind: %d\n", (int)kind);
-    return 1;
-  }
-
-  result = ezo_uart_read_ok(&device);
+  result = ezo_ph_read_response_uart(&device, &reading);
   ezo_uart_posix_serial_close(&serial);
   if (result != EZO_OK) {
-    fprintf(stderr, "terminal ack read failed: %d\n", (int)result);
+    fprintf(stderr, "typed UART pH read failed: %d\n", (int)result);
     return 1;
   }
 
-  printf("kind=%d response=%.*s\n", (int)kind, (int)response_len, response);
+  printf("pH=%.3f\n", reading.ph);
   return 0;
 }
