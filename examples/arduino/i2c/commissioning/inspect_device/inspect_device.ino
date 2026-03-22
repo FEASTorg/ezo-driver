@@ -11,8 +11,8 @@ Next: read ../../typed/read_ph/read_ph.ino for the smallest typed read path.
 #include <ezo_i2c_arduino_wire.h>
 #include <ezo_product.h>
 
-static const unsigned long STARTUP_SETTLE_MS = 1000UL;
-static const uint8_t DEVICE_I2C_ADDRESS = 99U;
+static const unsigned long STARTUP_SETTLE_MS = 3000UL;
+static const uint8_t DEVICE_I2C_ADDRESS = 97U;
 
 static ezo_arduino_wire_context_t wire_context;
 static ezo_i2c_device_t device;
@@ -36,11 +36,31 @@ static void fail_fast(const char *step, ezo_result_t result) {
 
 #define CHECK_OK(step, expr) fail_fast(step, (expr))
 
+static void drain_pending_i2c_responses() {
+  uint8_t buffer[16];
+  size_t response_len = 0;
+  ezo_device_status_t status = EZO_STATUS_UNKNOWN;
+  uint8_t attempt = 0;
+
+  // Atlas's own I2C examples drain pending replies before probing identity.
+  // This matters when the MCU resets but the EZO board stays powered.
+  for (attempt = 0; attempt < 2U; ++attempt) {
+    ezo_result_t result =
+        ezo_read_response_raw(&device, buffer, sizeof(buffer), &response_len, &status);
+    if (result != EZO_OK && result != EZO_ERR_BUFFER_TOO_SMALL && result != EZO_ERR_PROTOCOL) {
+      fail_fast("drain_pending_responses", result);
+    }
+    delay(200);
+  }
+}
+
 static void inspect_once() {
   ezo_timing_hint_t hint;
   ezo_device_info_t info;
   ezo_control_status_t status;
   const ezo_product_metadata_t *metadata = NULL;
+
+  drain_pending_i2c_responses();
 
   CHECK_OK("send_info_query", ezo_control_send_info_query_i2c(&device, EZO_PRODUCT_UNKNOWN, &hint));
   delay(hint.wait_ms);
