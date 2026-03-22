@@ -10,10 +10,8 @@ Next: read ../../commissioning/inspect_device/inspect_device.ino for setup check
 #include <ezo_do.h>
 #include <ezo_i2c_arduino_wire.h>
 
-enum {
-  STARTUP_SETTLE_MS = 1000U,
-  DO_I2C_ADDRESS = 97U
-};
+static const unsigned long STARTUP_SETTLE_MS = 1000UL;
+static const uint8_t DO_I2C_ADDRESS = 97U;
 
 static ezo_arduino_wire_context_t wire_context;
 static ezo_i2c_device_t device;

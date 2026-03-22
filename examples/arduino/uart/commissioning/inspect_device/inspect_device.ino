@@ -15,9 +15,7 @@ Next: read ../../typed/read_ph/read_ph.ino for the smallest typed UART read path
 #define EZO_UART_HAS_DEBUG_STREAM 0
 #endif
 
-enum {
-  STARTUP_SETTLE_MS = 1000U
-};
+static const unsigned long STARTUP_SETTLE_MS = 1000UL;
 
 static ezo_uart_arduino_stream_context_t uart_context;
 static ezo_uart_device_t device;

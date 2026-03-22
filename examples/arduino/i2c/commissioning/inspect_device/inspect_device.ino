@@ -11,10 +11,8 @@ Next: read ../../typed/read_ph/read_ph.ino for the smallest typed read path.
 #include <ezo_i2c_arduino_wire.h>
 #include <ezo_product.h>
 
-enum {
-  STARTUP_SETTLE_MS = 1000U,
-  DEVICE_I2C_ADDRESS = 99U
-};
+static const unsigned long STARTUP_SETTLE_MS = 1000UL;
+static const uint8_t DEVICE_I2C_ADDRESS = 99U;
 
 static ezo_arduino_wire_context_t wire_context;
 static ezo_i2c_device_t device;
