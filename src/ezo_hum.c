@@ -224,6 +224,37 @@ ezo_result_t ezo_hum_parse_output_config(const char *buffer,
   return EZO_OK;
 }
 
+ezo_result_t ezo_hum_parse_temperature_calibration_status(
+    const char *buffer,
+    size_t buffer_len,
+    ezo_hum_temperature_calibration_status_t *status_out) {
+  ezo_text_span_t fields[1];
+  size_t field_count = 0;
+  uint32_t value = 0;
+  ezo_result_t result = EZO_OK;
+
+  if (status_out == NULL) {
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
+
+  result = ezo_parse_prefixed_fields(buffer, buffer_len, "?Tcal", fields, 1, &field_count);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  if (field_count != 1) {
+    return EZO_ERR_PARSE;
+  }
+
+  result = ezo_parse_text_span_uint32(fields[0], &value);
+  if (result != EZO_OK || value > 1U) {
+    return EZO_ERR_PARSE;
+  }
+
+  status_out->calibrated = (uint8_t)value;
+  return EZO_OK;
+}
+
 ezo_result_t ezo_hum_build_output_command(char *buffer,
                                           size_t buffer_len,
                                           ezo_hum_output_mask_t output,
@@ -238,6 +269,13 @@ ezo_result_t ezo_hum_build_output_command(char *buffer,
   default:
     return EZO_ERR_INVALID_ARGUMENT;
   }
+}
+
+ezo_result_t ezo_hum_build_temperature_calibration_command(char *buffer,
+                                                           size_t buffer_len,
+                                                           double temperature_c,
+                                                           uint8_t decimals) {
+  return ezo_common_format_fixed_command(buffer, buffer_len, "Tcal,", temperature_c, decimals);
 }
 
 ezo_result_t ezo_hum_send_read_i2c(ezo_i2c_device_t *device,
@@ -261,6 +299,34 @@ ezo_result_t ezo_hum_send_output_set_i2c(ezo_i2c_device_t *device,
   }
 
   return ezo_hum_send_i2c_command(device, command, EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_hum_send_temperature_calibration_query_i2c(
+    ezo_i2c_device_t *device,
+    ezo_timing_hint_t *timing_hint) {
+  return ezo_hum_send_i2c_command(device, "Tcal,?", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_hum_send_temperature_calibration_i2c(ezo_i2c_device_t *device,
+                                                      double temperature_c,
+                                                      uint8_t decimals,
+                                                      ezo_timing_hint_t *timing_hint) {
+  char command[32];
+  ezo_result_t result = ezo_hum_build_temperature_calibration_command(command,
+                                                                      sizeof(command),
+                                                                      temperature_c,
+                                                                      decimals);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_hum_send_i2c_command(device, command, EZO_COMMAND_CALIBRATION, timing_hint);
+}
+
+ezo_result_t ezo_hum_send_clear_temperature_calibration_i2c(
+    ezo_i2c_device_t *device,
+    ezo_timing_hint_t *timing_hint) {
+  return ezo_hum_send_i2c_command(device, "Tcal,clear", EZO_COMMAND_GENERIC, timing_hint);
 }
 
 ezo_result_t ezo_hum_read_response_i2c(ezo_i2c_device_t *device,
@@ -288,6 +354,19 @@ ezo_result_t ezo_hum_read_output_config_i2c(ezo_i2c_device_t *device,
   return ezo_hum_parse_output_config(buffer, response_len, config_out);
 }
 
+ezo_result_t ezo_hum_read_temperature_calibration_status_i2c(
+    ezo_i2c_device_t *device,
+    ezo_hum_temperature_calibration_status_t *status_out) {
+  char buffer[EZO_HUM_RESPONSE_BUFFER_LEN];
+  size_t response_len = 0;
+  ezo_result_t result = ezo_hum_read_i2c_text(device, buffer, sizeof(buffer), &response_len);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_hum_parse_temperature_calibration_status(buffer, response_len, status_out);
+}
+
 ezo_result_t ezo_hum_send_read_uart(ezo_uart_device_t *device,
                                     ezo_timing_hint_t *timing_hint) {
   return ezo_hum_send_uart_command(device, "r", EZO_COMMAND_READ, timing_hint);
@@ -309,6 +388,34 @@ ezo_result_t ezo_hum_send_output_set_uart(ezo_uart_device_t *device,
   }
 
   return ezo_hum_send_uart_command(device, command, EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_hum_send_temperature_calibration_query_uart(
+    ezo_uart_device_t *device,
+    ezo_timing_hint_t *timing_hint) {
+  return ezo_hum_send_uart_command(device, "Tcal,?", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_hum_send_temperature_calibration_uart(ezo_uart_device_t *device,
+                                                       double temperature_c,
+                                                       uint8_t decimals,
+                                                       ezo_timing_hint_t *timing_hint) {
+  char command[32];
+  ezo_result_t result = ezo_hum_build_temperature_calibration_command(command,
+                                                                      sizeof(command),
+                                                                      temperature_c,
+                                                                      decimals);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_hum_send_uart_command(device, command, EZO_COMMAND_CALIBRATION, timing_hint);
+}
+
+ezo_result_t ezo_hum_send_clear_temperature_calibration_uart(
+    ezo_uart_device_t *device,
+    ezo_timing_hint_t *timing_hint) {
+  return ezo_hum_send_uart_command(device, "Tcal,clear", EZO_COMMAND_GENERIC, timing_hint);
 }
 
 ezo_result_t ezo_hum_read_response_uart(ezo_uart_device_t *device,
@@ -336,4 +443,18 @@ ezo_result_t ezo_hum_read_output_config_uart(ezo_uart_device_t *device,
   }
 
   return ezo_hum_parse_output_config(buffer, response_len, config_out);
+}
+
+ezo_result_t ezo_hum_read_temperature_calibration_status_uart(
+    ezo_uart_device_t *device,
+    ezo_hum_temperature_calibration_status_t *status_out) {
+  char buffer[EZO_HUM_RESPONSE_BUFFER_LEN];
+  size_t response_len = 0;
+  ezo_result_t result =
+      ezo_hum_read_uart_data_then_ok(device, buffer, sizeof(buffer), &response_len);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_hum_parse_temperature_calibration_status(buffer, response_len, status_out);
 }

@@ -23,6 +23,11 @@ typedef enum {
   EZO_DO_SALINITY_UNIT_PPT
 } ezo_do_salinity_unit_t;
 
+typedef enum {
+  EZO_DO_CALIBRATION_ATMOSPHERIC = 0,
+  EZO_DO_CALIBRATION_ZERO
+} ezo_do_calibration_point_t;
+
 typedef struct {
   ezo_do_output_mask_t present_mask;
   double milligrams_per_liter;
@@ -46,6 +51,10 @@ typedef struct {
   double pressure_kpa;
 } ezo_do_pressure_compensation_t;
 
+typedef struct {
+  uint32_t level;
+} ezo_do_calibration_status_t;
+
 ezo_result_t ezo_do_parse_reading(const char *buffer,
                                   size_t buffer_len,
                                   ezo_do_output_mask_t enabled_mask,
@@ -67,6 +76,10 @@ ezo_result_t ezo_do_parse_pressure(const char *buffer,
                                    size_t buffer_len,
                                    ezo_do_pressure_compensation_t *pressure_out);
 
+ezo_result_t ezo_do_parse_calibration_status(const char *buffer,
+                                             size_t buffer_len,
+                                             ezo_do_calibration_status_t *status_out);
+
 ezo_result_t ezo_do_build_output_command(char *buffer,
                                          size_t buffer_len,
                                          ezo_do_output_mask_t output,
@@ -87,6 +100,10 @@ ezo_result_t ezo_do_build_pressure_command(char *buffer,
                                            size_t buffer_len,
                                            double pressure_kpa,
                                            uint8_t decimals);
+
+ezo_result_t ezo_do_build_calibration_command(char *buffer,
+                                              size_t buffer_len,
+                                              ezo_do_calibration_point_t point);
 
 ezo_result_t ezo_do_send_read_i2c(ezo_i2c_device_t *device,
                                   ezo_timing_hint_t *timing_hint);
@@ -129,6 +146,16 @@ ezo_result_t ezo_do_send_pressure_set_i2c(ezo_i2c_device_t *device,
                                           uint8_t decimals,
                                           ezo_timing_hint_t *timing_hint);
 
+ezo_result_t ezo_do_send_calibration_query_i2c(ezo_i2c_device_t *device,
+                                               ezo_timing_hint_t *timing_hint);
+
+ezo_result_t ezo_do_send_calibration_i2c(ezo_i2c_device_t *device,
+                                         ezo_do_calibration_point_t point,
+                                         ezo_timing_hint_t *timing_hint);
+
+ezo_result_t ezo_do_send_clear_calibration_i2c(ezo_i2c_device_t *device,
+                                               ezo_timing_hint_t *timing_hint);
+
 ezo_result_t ezo_do_read_response_i2c(ezo_i2c_device_t *device,
                                       ezo_do_output_mask_t enabled_mask,
                                       ezo_do_reading_t *reading_out);
@@ -144,6 +171,9 @@ ezo_result_t ezo_do_read_salinity_i2c(ezo_i2c_device_t *device,
 
 ezo_result_t ezo_do_read_pressure_i2c(ezo_i2c_device_t *device,
                                       ezo_do_pressure_compensation_t *pressure_out);
+
+ezo_result_t ezo_do_read_calibration_status_i2c(ezo_i2c_device_t *device,
+                                                ezo_do_calibration_status_t *status_out);
 
 ezo_result_t ezo_do_send_read_uart(ezo_uart_device_t *device,
                                    ezo_timing_hint_t *timing_hint);
@@ -186,6 +216,16 @@ ezo_result_t ezo_do_send_pressure_set_uart(ezo_uart_device_t *device,
                                            uint8_t decimals,
                                            ezo_timing_hint_t *timing_hint);
 
+ezo_result_t ezo_do_send_calibration_query_uart(ezo_uart_device_t *device,
+                                                ezo_timing_hint_t *timing_hint);
+
+ezo_result_t ezo_do_send_calibration_uart(ezo_uart_device_t *device,
+                                          ezo_do_calibration_point_t point,
+                                          ezo_timing_hint_t *timing_hint);
+
+ezo_result_t ezo_do_send_clear_calibration_uart(ezo_uart_device_t *device,
+                                                ezo_timing_hint_t *timing_hint);
+
 ezo_result_t ezo_do_read_response_uart(ezo_uart_device_t *device,
                                        ezo_do_output_mask_t enabled_mask,
                                        ezo_do_reading_t *reading_out);
@@ -202,6 +242,9 @@ ezo_result_t ezo_do_read_salinity_uart(ezo_uart_device_t *device,
 
 ezo_result_t ezo_do_read_pressure_uart(ezo_uart_device_t *device,
                                        ezo_do_pressure_compensation_t *pressure_out);
+
+ezo_result_t ezo_do_read_calibration_status_uart(ezo_uart_device_t *device,
+                                                 ezo_do_calibration_status_t *status_out);
 
 #ifdef __cplusplus
 }

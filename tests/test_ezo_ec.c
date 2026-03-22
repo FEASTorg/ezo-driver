@@ -11,6 +11,7 @@ static void test_parse_helpers_cover_reading_output_config_and_queries(void) {
   ezo_ec_temperature_compensation_t temperature;
   ezo_ec_probe_k_t probe_k;
   ezo_ec_tds_factor_t tds_factor;
+  ezo_ec_calibration_status_t calibration;
 
   assert(ezo_ec_parse_reading("412.0,1.025",
                               strlen("412.0,1.025"),
@@ -38,6 +39,9 @@ static void test_parse_helpers_cover_reading_output_config_and_queries(void) {
 
   assert(ezo_ec_parse_tds_factor("?TDS,0.65", strlen("?TDS,0.65"), &tds_factor) == EZO_OK);
   assert(tds_factor.factor > 0.64 && tds_factor.factor < 0.66);
+
+  assert(ezo_ec_parse_calibration_status("?Cal,3", strlen("?Cal,3"), &calibration) == EZO_OK);
+  assert(calibration.level == 3U);
 }
 
 static void test_command_builders_format_expected_commands(void) {
@@ -55,6 +59,13 @@ static void test_command_builders_format_expected_commands(void) {
 
   assert(ezo_ec_build_tds_factor_command(command, sizeof(command), 0.66, 3) == EZO_OK);
   assert(strcmp(command, "TDS,0.660") == 0);
+
+  assert(ezo_ec_build_calibration_command(command,
+                                          sizeof(command),
+                                          EZO_EC_CALIBRATION_DRY,
+                                          0.0,
+                                          0) == EZO_OK);
+  assert(strcmp(command, "Cal,dry") == 0);
 }
 
 static void test_i2c_helpers_send_and_parse_typed_responses(void) {
@@ -68,6 +79,7 @@ static void test_i2c_helpers_send_and_parse_typed_responses(void) {
   ezo_ec_output_config_t output_config;
   ezo_ec_tds_factor_t tds_factor;
   ezo_ec_reading_t reading;
+  ezo_ec_calibration_status_t calibration;
 
   ezo_fake_transport_init(&fake);
   assert(ezo_device_init(&device, 100, ezo_fake_transport_vtable(), &fake) == EZO_OK);
@@ -100,6 +112,20 @@ static void test_i2c_helpers_send_and_parse_typed_responses(void) {
   assert(hint.wait_ms == 300);
   assert(ezo_ec_read_tds_factor_i2c(&device, &tds_factor) == EZO_OK);
   assert(tds_factor.factor > 0.70 && tds_factor.factor < 0.72);
+
+  assert(ezo_ec_send_calibration_i2c(&device,
+                                     EZO_EC_CALIBRATION_LOW_POINT,
+                                     12880.0,
+                                     0,
+                                     &hint) == EZO_OK);
+  assert(hint.wait_ms == 1200);
+  assert(memcmp(fake.last_tx_bytes, "Cal,low,12880", strlen("Cal,low,12880")) == 0);
+
+  ezo_fake_transport_set_response(&fake, (const uint8_t[]){1, '?', 'C', 'a', 'l', ',', '2', 0},
+                                  8);
+  assert(ezo_ec_send_calibration_query_i2c(&device, &hint) == EZO_OK);
+  assert(ezo_ec_read_calibration_status_i2c(&device, &calibration) == EZO_OK);
+  assert(calibration.level == 2U);
 }
 
 static void test_uart_helpers_cover_plain_read_and_query_sequences(void) {
@@ -114,6 +140,7 @@ static void test_uart_helpers_cover_plain_read_and_query_sequences(void) {
   ezo_ec_reading_t reading;
   ezo_ec_output_config_t output_config;
   ezo_ec_temperature_compensation_t temperature;
+  ezo_ec_calibration_status_t calibration;
 
   ezo_fake_uart_transport_init(&fake);
   assert(ezo_uart_device_init(&device, ezo_fake_uart_transport_vtable(), &fake) == EZO_OK);
@@ -146,6 +173,14 @@ static void test_uart_helpers_cover_plain_read_and_query_sequences(void) {
   assert(hint.wait_ms == 300);
   assert(ezo_ec_read_temperature_uart(&device, &temperature) == EZO_OK);
   assert(temperature.temperature_c > 24.4 && temperature.temperature_c < 24.6);
+
+  ezo_fake_uart_transport_set_response(&fake,
+                                       (const uint8_t[]){'?', 'C', 'a', 'l', ',', '1', '\r', '*',
+                                                         'O', 'K', '\r'},
+                                       11);
+  assert(ezo_ec_send_calibration_query_uart(&device, &hint) == EZO_OK);
+  assert(ezo_ec_read_calibration_status_uart(&device, &calibration) == EZO_OK);
+  assert(calibration.level == 1U);
 }
 
 int main(void) {

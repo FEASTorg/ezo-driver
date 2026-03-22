@@ -294,6 +294,36 @@ ezo_result_t ezo_ph_parse_slope(const char *buffer,
   return ezo_parse_text_span_double(fields[2], &slope_out->neutral_mv);
 }
 
+ezo_result_t ezo_ph_parse_extended_range(const char *buffer,
+                                         size_t buffer_len,
+                                         ezo_ph_extended_range_status_t *status_out) {
+  ezo_text_span_t fields[1];
+  size_t field_count = 0;
+  uint32_t value = 0;
+  ezo_result_t result = EZO_OK;
+
+  if (status_out == NULL) {
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
+
+  result = ezo_parse_prefixed_fields(buffer, buffer_len, "?pHext", fields, 1, &field_count);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  if (field_count != 1) {
+    return EZO_ERR_PARSE;
+  }
+
+  result = ezo_parse_text_span_uint32(fields[0], &value);
+  if (result != EZO_OK || value > 1U) {
+    return EZO_ERR_PARSE;
+  }
+
+  status_out->enabled = (ezo_ph_extended_range_t)value;
+  return EZO_OK;
+}
+
 ezo_result_t ezo_ph_build_temperature_command(char *buffer,
                                               size_t buffer_len,
                                               double temperature_c,
@@ -323,6 +353,19 @@ ezo_result_t ezo_ph_build_calibration_command(char *buffer,
   }
 
   return ezo_common_format_fixed_command(buffer, buffer_len, prefix, reference_ph, decimals);
+}
+
+ezo_result_t ezo_ph_build_extended_range_command(char *buffer,
+                                                 size_t buffer_len,
+                                                 ezo_ph_extended_range_t enabled) {
+  switch (enabled) {
+  case EZO_PH_EXTENDED_RANGE_DISABLED:
+    return ezo_ph_copy_command(buffer, buffer_len, "pHext,0");
+  case EZO_PH_EXTENDED_RANGE_ENABLED:
+    return ezo_ph_copy_command(buffer, buffer_len, "pHext,1");
+  default:
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
 }
 
 ezo_result_t ezo_ph_send_read_i2c(ezo_i2c_device_t *device,
@@ -366,9 +409,47 @@ ezo_result_t ezo_ph_send_calibration_query_i2c(ezo_i2c_device_t *device,
   return ezo_ph_send_i2c_command(device, "Cal,?", EZO_COMMAND_GENERIC, timing_hint);
 }
 
+ezo_result_t ezo_ph_send_calibration_i2c(ezo_i2c_device_t *device,
+                                         ezo_ph_calibration_point_t point,
+                                         double reference_ph,
+                                         uint8_t decimals,
+                                         ezo_timing_hint_t *timing_hint) {
+  char command[32];
+  ezo_result_t result =
+      ezo_ph_build_calibration_command(command, sizeof(command), point, reference_ph, decimals);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_ph_send_i2c_command(device, command, EZO_COMMAND_CALIBRATION, timing_hint);
+}
+
+ezo_result_t ezo_ph_send_clear_calibration_i2c(ezo_i2c_device_t *device,
+                                               ezo_timing_hint_t *timing_hint) {
+  return ezo_ph_send_i2c_command(device, "Cal,clear", EZO_COMMAND_GENERIC, timing_hint);
+}
+
 ezo_result_t ezo_ph_send_slope_query_i2c(ezo_i2c_device_t *device,
                                          ezo_timing_hint_t *timing_hint) {
   return ezo_ph_send_i2c_command(device, "Slope,?", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_ph_send_extended_range_query_i2c(ezo_i2c_device_t *device,
+                                                  ezo_timing_hint_t *timing_hint) {
+  return ezo_ph_send_i2c_command(device, "pHext,?", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_ph_send_extended_range_set_i2c(ezo_i2c_device_t *device,
+                                                ezo_ph_extended_range_t enabled,
+                                                ezo_timing_hint_t *timing_hint) {
+  char command[16];
+  ezo_result_t result =
+      ezo_ph_build_extended_range_command(command, sizeof(command), enabled);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_ph_send_i2c_command(device, command, EZO_COMMAND_GENERIC, timing_hint);
 }
 
 ezo_result_t ezo_ph_read_response_i2c(ezo_i2c_device_t *device,
@@ -419,6 +500,18 @@ ezo_result_t ezo_ph_read_slope_i2c(ezo_i2c_device_t *device,
   return ezo_ph_parse_slope(buffer, response_len, slope_out);
 }
 
+ezo_result_t ezo_ph_read_extended_range_i2c(ezo_i2c_device_t *device,
+                                            ezo_ph_extended_range_status_t *status_out) {
+  char buffer[EZO_PH_RESPONSE_BUFFER_LEN];
+  size_t response_len = 0;
+  ezo_result_t result = ezo_ph_read_i2c_text(device, buffer, sizeof(buffer), &response_len);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_ph_parse_extended_range(buffer, response_len, status_out);
+}
+
 ezo_result_t ezo_ph_send_read_uart(ezo_uart_device_t *device,
                                    ezo_timing_hint_t *timing_hint) {
   return ezo_ph_send_uart_command(device, "r", EZO_COMMAND_READ, timing_hint);
@@ -460,9 +553,47 @@ ezo_result_t ezo_ph_send_calibration_query_uart(ezo_uart_device_t *device,
   return ezo_ph_send_uart_command(device, "Cal,?", EZO_COMMAND_GENERIC, timing_hint);
 }
 
+ezo_result_t ezo_ph_send_calibration_uart(ezo_uart_device_t *device,
+                                          ezo_ph_calibration_point_t point,
+                                          double reference_ph,
+                                          uint8_t decimals,
+                                          ezo_timing_hint_t *timing_hint) {
+  char command[32];
+  ezo_result_t result =
+      ezo_ph_build_calibration_command(command, sizeof(command), point, reference_ph, decimals);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_ph_send_uart_command(device, command, EZO_COMMAND_CALIBRATION, timing_hint);
+}
+
+ezo_result_t ezo_ph_send_clear_calibration_uart(ezo_uart_device_t *device,
+                                                ezo_timing_hint_t *timing_hint) {
+  return ezo_ph_send_uart_command(device, "Cal,clear", EZO_COMMAND_GENERIC, timing_hint);
+}
+
 ezo_result_t ezo_ph_send_slope_query_uart(ezo_uart_device_t *device,
                                           ezo_timing_hint_t *timing_hint) {
   return ezo_ph_send_uart_command(device, "Slope,?", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_ph_send_extended_range_query_uart(ezo_uart_device_t *device,
+                                                   ezo_timing_hint_t *timing_hint) {
+  return ezo_ph_send_uart_command(device, "pHext,?", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_ph_send_extended_range_set_uart(ezo_uart_device_t *device,
+                                                 ezo_ph_extended_range_t enabled,
+                                                 ezo_timing_hint_t *timing_hint) {
+  char command[16];
+  ezo_result_t result =
+      ezo_ph_build_extended_range_command(command, sizeof(command), enabled);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_ph_send_uart_command(device, command, EZO_COMMAND_GENERIC, timing_hint);
 }
 
 ezo_result_t ezo_ph_read_response_uart(ezo_uart_device_t *device,
@@ -530,4 +661,17 @@ ezo_result_t ezo_ph_read_slope_uart(ezo_uart_device_t *device,
   }
 
   return ezo_ph_parse_slope(buffer, response_len, slope_out);
+}
+
+ezo_result_t ezo_ph_read_extended_range_uart(ezo_uart_device_t *device,
+                                             ezo_ph_extended_range_status_t *status_out) {
+  char buffer[EZO_PH_RESPONSE_BUFFER_LEN];
+  size_t response_len = 0;
+  ezo_result_t result =
+      ezo_ph_read_uart_data_then_ok(device, buffer, sizeof(buffer), &response_len);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_ph_parse_extended_range(buffer, response_len, status_out);
 }

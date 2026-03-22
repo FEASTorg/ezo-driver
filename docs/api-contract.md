@@ -5,6 +5,8 @@ Status: accepted
 Source of truth:
 
 - shared C API: `src/ezo.h`
+- shared calibration-transfer API: `src/ezo_calibration_transfer.h`
+- shared control API: `src/ezo_control.h`
 - DO product API: `src/ezo_do.h`
 - EC product API: `src/ezo_ec.h`
 - HUM product API: `src/ezo_hum.h`
@@ -127,6 +129,8 @@ Rules:
 
 The product-module layer currently provides:
 
+- shared control-plane helpers in `src/ezo_control.h`
+- shared calibration-transfer helpers in `src/ezo_calibration_transfer.h`
 - typed pH helpers in `src/ezo_ph.h`
 - typed ORP helpers in `src/ezo_orp.h`
 - typed RTD helpers in `src/ezo_rtd.h`
@@ -150,7 +154,10 @@ Rules:
 5. RTD reading helpers require the caller to provide the current temperature scale unless that scale was queried separately first.
 6. Multi-output typed reading helpers require an explicit enabled-output mask from the caller and do not hide an output-configuration query internally.
 7. EC, DO, and HUM output-configuration helpers are product-specific; the shared parse/schema layer does not expose a public generic output-config parser.
-8. Current Phase 5 typed coverage for EC/DO/HUM is limited to typed reads, output selection, and measurement-critical compensation/configuration helpers; broader control/admin and advanced calibration-transfer work remains separate.
+8. Shared control/admin helpers remain transport-explicit and product-aware only for timing lookup; they do not create a unified product device abstraction.
+9. Calibration-transfer helpers expose command/query primitives and sequence-shaped reads, but they do not hide reboot/reconnect or multi-line loop ownership from the caller.
+10. UART response-code mode is part of the shared control plane because higher layers should not assume `*OK` is enabled at runtime.
+11. RTD bulk memory recall remains caller-buffered; the library does not allocate storage for recalled history.
 
 ## I2C Surface
 
@@ -306,9 +313,8 @@ Current gap by design:
 
 Not part of the current baseline:
 
-- broad typed control-plane workflows
-- advanced per-product helpers such as calibration transfer and HUM temperature calibration
 - async/state-machine behavior
+- automatic reconnect or stale-input cleanup around rebooting, sleep, or mode changes
 - hidden retries or hidden delays
 - compatibility with the legacy Atlas API shape
 - UART C++ wrapper

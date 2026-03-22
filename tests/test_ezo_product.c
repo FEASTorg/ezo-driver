@@ -77,23 +77,23 @@ static void test_product_metadata_registry_exposes_defaults_and_support_tiers(vo
   assert(ph->default_response_codes == EZO_PRODUCT_DEFAULT_ENABLED);
   assert(ph->default_output_schema == EZO_PRODUCT_OUTPUT_SCHEMA_SCALAR_SINGLE);
   assert(ph->default_output_count == 1);
-  assert(ph->support_tier == EZO_PRODUCT_SUPPORT_TYPED_READ);
+  assert(ph->support_tier == EZO_PRODUCT_SUPPORT_FULL);
 
   assert(ec != NULL);
-  assert(ec->support_tier == EZO_PRODUCT_SUPPORT_TYPED_READ);
+  assert(ec->support_tier == EZO_PRODUCT_SUPPORT_FULL);
   assert(ec->default_output_schema == EZO_PRODUCT_OUTPUT_SCHEMA_QUERY_REQUIRED);
   assert(ec->default_output_count == 0);
 
-  assert(ezo_product_get_support_tier(EZO_PRODUCT_DO) == EZO_PRODUCT_SUPPORT_TYPED_READ);
+  assert(ezo_product_get_support_tier(EZO_PRODUCT_DO) == EZO_PRODUCT_SUPPORT_FULL);
 
   assert(hum != NULL);
-  assert(hum->support_tier == EZO_PRODUCT_SUPPORT_TYPED_READ);
+  assert(hum->support_tier == EZO_PRODUCT_SUPPORT_FULL);
   assert(hum->default_output_schema == EZO_PRODUCT_OUTPUT_SCHEMA_PRIMARY_ONLY);
   assert(hum->default_output_count == 1);
 
   assert(unknown == NULL);
-  assert(ezo_product_get_support_tier(EZO_PRODUCT_ORP) == EZO_PRODUCT_SUPPORT_TYPED_READ);
-  assert(ezo_product_get_support_tier(EZO_PRODUCT_RTD) == EZO_PRODUCT_SUPPORT_TYPED_READ);
+  assert(ezo_product_get_support_tier(EZO_PRODUCT_ORP) == EZO_PRODUCT_SUPPORT_FULL);
+  assert(ezo_product_get_support_tier(EZO_PRODUCT_RTD) == EZO_PRODUCT_SUPPORT_FULL);
   assert(ezo_product_get_support_tier(EZO_PRODUCT_UNKNOWN) == EZO_PRODUCT_SUPPORT_UNKNOWN);
 }
 

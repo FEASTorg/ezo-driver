@@ -20,7 +20,7 @@ This page captures the repo-relevant behavior of the EZO RTD family.
 
 RTD returns one temperature value at a time, but that value is not unit-invariant. The device can express readings in Celsius, Kelvin, or Fahrenheit.
 
-That means a future typed helper should either:
+That means a typed helper should either:
 
 - preserve unit state explicitly
 - or normalize units in a clearly documented way
@@ -39,17 +39,23 @@ Scale selection changes the meaning of ordinary read results even though the pay
 
 RTD is the outlier in the current product set because it includes onboard logging and stored-reading recall. Those commands do not belong in a generic EZO abstraction.
 
+The recall surface is split into:
+
+- sequential `M` history reads with explicit indices in the payload
+- bulk `M,all` history recall as a CSV list of stored temperatures
+- memory-clear control
+
 ## Timing Notes
 
 The generic repo read hint is conservative for RTD and broadly safe across the vendor timing views. Logger and memory operations should still be treated as their own product behaviors rather than folded into the normal read path.
 
 ## Code Implications
 
-A future RTD helper layer should probably group:
+The current typed RTD module now groups:
 
 - read and calibration helpers
 - unit selection
 - logger control
-- memory recall and clear
+- sequential memory recall, bulk memory recall, and clear
 
 RTD is still simpler than EC, DO, and HUM from a parsing perspective, but broader from a device-feature perspective.

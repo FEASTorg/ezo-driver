@@ -17,7 +17,9 @@ option(EZO_BUILD_POSIX_UART_ADAPTER "Build POSIX UART adapter sources" OFF)
 
 add_library(ezo_core STATIC
   src/ezo.c
+  src/ezo_calibration_transfer.c
   src/ezo_common.c
+  src/ezo_control.c
   src/ezo_do.c
   src/ezo_ec.c
   src/ezo_hum.c
@@ -136,6 +138,44 @@ if(EZO_BUILD_TESTS)
   add_test(
     NAME ezo_parse_tests
     COMMAND ezo_parse_tests
+  )
+
+  add_executable(ezo_control_tests
+    tests/fakes/ezo_fake_transport.c
+    tests/fakes/ezo_fake_uart_transport.c
+    tests/test_ezo_control.c
+  )
+
+  target_include_directories(ezo_control_tests
+    PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+
+  target_link_libraries(ezo_control_tests PRIVATE ezo_core)
+
+  add_test(
+    NAME ezo_control_tests
+    COMMAND ezo_control_tests
+  )
+
+  add_executable(ezo_calibration_transfer_tests
+    tests/fakes/ezo_fake_transport.c
+    tests/fakes/ezo_fake_uart_transport.c
+    tests/test_ezo_calibration_transfer.c
+  )
+
+  target_include_directories(ezo_calibration_transfer_tests
+    PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+
+  target_link_libraries(ezo_calibration_transfer_tests PRIVATE ezo_core)
+
+  add_test(
+    NAME ezo_calibration_transfer_tests
+    COMMAND ezo_calibration_transfer_tests
   )
 
   add_executable(ezo_ph_tests

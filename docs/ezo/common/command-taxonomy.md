@@ -51,6 +51,7 @@ These are widely shared, but some of them trigger reboots or non-standard respon
 ### Protocol Control
 
 - baud-rate control on UART-side flows
+- UART response-code enable, disable, and query
 - I2C address change on I2C-side flows
 - protocol lock
 - switch from UART to I2C
@@ -90,7 +91,7 @@ The products diverge in exactly the places that would shape future typed APIs.
 
 - temperature scale selection
 - onboard logger enable and interval control
-- memory recall and clear
+- sequential memory recall, bulk memory recall, and clear
 
 ### HUM
 

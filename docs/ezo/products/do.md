@@ -40,7 +40,7 @@ DO has the broadest compensation surface among the current products:
 - salinity
 - atmospheric pressure
 
-That is a strong argument for a future typed helper layer, because these settings shape both calibration practice and measurement interpretation.
+That is why the current typed helper layer exposes these settings explicitly, because they shape both calibration practice and measurement interpretation.
 
 ### Output Selection
 
@@ -52,10 +52,10 @@ The generic repo read hint is conservative for normal DO reads. Calibration and 
 
 ## Code Implications
 
-A future DO helper layer should probably own:
+The current typed DO module now owns:
 
 - typed parsing for configured outputs
 - explicit compensation commands
-- calibration helpers
+- calibration query/set/clear helpers
 
-Without that layer, application code should treat DO payload shape as configuration-dependent.
+Application code should still treat DO payload shape as configuration-dependent unless output configuration is controlled explicitly.

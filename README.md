@@ -20,6 +20,8 @@ Current implementation includes:
 - shared `ezo.h` surface for results, timing hints, and numeric parsing
 - product identity and metadata for the initial six documented EZO families
 - shared query/CSV parsing, UART sequence-state helpers, and canonical output schemas
+- shared control-plane helpers for identity, status, LED, UART response-code mode, sleep, factory reset, protocol lock, and mode switching
+- shared calibration-transfer helpers for export/import workflows
 - typed scalar product modules for pH, ORP, and RTD
 - typed multi-output product modules for EC, DO, and HUM
 - complete I2C core with text and raw response decoding
@@ -35,7 +37,7 @@ Current support matrix:
 
 - I2C: C core, I2C C++ wrapper, Arduino `TwoWire`, Linux I2C adapter
 - UART: C core, Arduino `Stream`, Linux host POSIX serial adapter
-- Product modules: typed read/query support for all initial six families, including multi-output EC/DO/HUM output-configuration helpers and measurement-critical compensation/configuration helpers
+- Product modules: full typed support for the initial six families, including shared control/admin coverage, calibration-transfer primitives, and advanced per-product helpers
 - Product foundation: identity, metadata, timing fallback, and parse/schema utilities for the initial six documented families
 - Shared: host-side tests and Arduino compile validation
 
@@ -98,6 +100,8 @@ Primary public headers:
 - [`src/ezo_do.h`](./src/ezo_do.h)
 - [`src/ezo_ec.h`](./src/ezo_ec.h)
 - [`src/ezo_hum.h`](./src/ezo_hum.h)
+- [`src/ezo_calibration_transfer.h`](./src/ezo_calibration_transfer.h)
+- [`src/ezo_control.h`](./src/ezo_control.h)
 - [`src/ezo_parse.h`](./src/ezo_parse.h)
 - [`src/ezo_i2c.h`](./src/ezo_i2c.h)
 - [`src/ezo_i2c.hpp`](./src/ezo_i2c.hpp)
@@ -115,7 +119,9 @@ Primary public headers:
 Primary implementation files:
 
 - [`src/ezo.c`](./src/ezo.c)
+- [`src/ezo_calibration_transfer.c`](./src/ezo_calibration_transfer.c)
 - [`src/ezo_common.c`](./src/ezo_common.c)
+- [`src/ezo_control.c`](./src/ezo_control.c)
 - [`src/ezo_do.c`](./src/ezo_do.c)
 - [`src/ezo_ec.c`](./src/ezo_ec.c)
 - [`src/ezo_hum.c`](./src/ezo_hum.c)
@@ -144,9 +150,8 @@ Primary implementation files:
 
 Intentionally out of scope for the current baseline:
 
-- broad typed control-plane helpers such as export/import and mode switching
-- remaining advanced per-product helpers such as calibration transfer and HUM temperature calibration
 - async/state-machine behavior
+- hidden reconnect or resynchronization workflows around rebooting, sleep, or mode changes
 - hidden retries or hidden delays
 - compatibility with the legacy Atlas API shape
 - UART C++ wrapper

@@ -39,7 +39,7 @@ The device can enable or disable humidity, dew-point, and temperature outputs in
 
 ### Temperature Calibration
 
-The product is factory calibrated, but the onboard temperature-calibration path still matters because humidity interpretation is temperature-sensitive. A future helper should treat temperature calibration as a product-specific operation, not as a generic calibration abstraction.
+The product is factory calibrated, but the onboard temperature-calibration path still matters because humidity interpretation is temperature-sensitive. The current helper treats temperature calibration as a product-specific operation, not as a generic calibration abstraction.
 
 ## Timing Notes
 
@@ -52,7 +52,7 @@ That reinforces the rule that repo timing hints are fallback defaults, not a pro
 
 ## Code Implications
 
-A future HUM helper layer should likely own:
+The current typed HUM module now owns:
 
 - typed parsing for enabled outputs
 - output-enable configuration

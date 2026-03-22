@@ -6,16 +6,18 @@ All notable tracked changes to this rewrite will be recorded here.
 
 ### Added
 
-- typed EC, DO, and HUM product modules over both I2C and UART
-- explicit output-configuration helpers for the multi-output product families
-- EC temperature/probe-K/TDS-factor helpers, DO temperature/salinity/pressure helpers, and focused Linux I2C examples for EC/DO/HUM
-- host-side fake-transport tests for EC, DO, and HUM
+- shared `ezo_control` module for info, name, status, LED, UART response-code mode, sleep, factory reset, protocol lock, and mode-switch helpers
+- shared `ezo_calibration_transfer` module for export/import workflows
+- advanced typed product helpers for pH extended range, RTD logger/memory, and HUM temperature calibration
+- typed calibration helpers for pH, EC, DO, and RTD
+- host-side fake-transport tests for the shared control/calibration-transfer modules and the expanded product helpers
 
 ### Changed
 
-- promoted EC, DO, and HUM metadata support tiers to typed-read support
+- promoted the initial six documented product families to full support
 - aligned the HUM canonical schema order with the product's humidity, air-temperature, then dew-point output order
-- updated the tracked docs and support matrix to reflect full Phase 5 typed coverage
+- completed RTD bulk memory recall support and richer I2C calibration-import completion reporting
+- updated the tracked docs to reflect full Phase 6 control-plane and advanced-feature coverage
 
 ## [0.3.0] - current baseline
 

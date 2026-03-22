@@ -26,7 +26,7 @@ The device can report multiple related values, including:
 - salinity
 - specific gravity
 
-When more than one field is enabled, vendor documentation defines a fixed output order. That means any future EC helper should parse an explicit CSV schema rather than call `ezo_parse_double()` on the whole payload.
+When more than one field is enabled, vendor documentation defines a fixed output order. The current EC helper therefore parses an explicit CSV schema rather than calling `ezo_parse_double()` on the whole payload.
 
 ## Shared Command Families Present
 
@@ -36,7 +36,7 @@ The EC family includes the common acquisition, calibration, identity, control, a
 
 ### Probe Configuration
 
-The EC product exposes probe `K` configuration. That configuration changes how the device should be interpreted in an application and belongs in any future typed helper layer.
+The EC product exposes probe `K` configuration. That configuration changes how the device should be interpreted in an application and belongs in the current typed helper layer.
 
 ### Temperature Compensation
 
@@ -56,12 +56,12 @@ The current repo read fallback of `1000 ms` is conservative for EC reads. Produc
 
 ## Code Implications
 
-Future EC helpers should likely own:
+The current typed EC module owns:
 
 - a typed output parser
 - output-enable configuration
 - probe `K` configuration
 - temperature-compensation helpers
-- calibration helpers
+- calibration query/set/clear helpers
 
-That layer should sit above the current transport APIs rather than complicate `src/ezo_i2c.*` or `src/ezo_uart.*`.
+That layer sits above the transport APIs rather than complicating `src/ezo_i2c.*` or `src/ezo_uart.*`.

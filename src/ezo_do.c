@@ -387,6 +387,29 @@ ezo_result_t ezo_do_parse_pressure(const char *buffer,
   return ezo_do_parse_query_double(buffer, buffer_len, "?P", &pressure_out->pressure_kpa);
 }
 
+ezo_result_t ezo_do_parse_calibration_status(const char *buffer,
+                                             size_t buffer_len,
+                                             ezo_do_calibration_status_t *status_out) {
+  ezo_text_span_t fields[1];
+  size_t field_count = 0;
+  ezo_result_t result = EZO_OK;
+
+  if (status_out == NULL) {
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
+
+  result = ezo_parse_prefixed_fields(buffer, buffer_len, "?Cal", fields, 1, &field_count);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  if (field_count != 1) {
+    return EZO_ERR_PARSE;
+  }
+
+  return ezo_parse_text_span_uint32(fields[0], &status_out->level);
+}
+
 ezo_result_t ezo_do_build_output_command(char *buffer,
                                          size_t buffer_len,
                                          ezo_do_output_mask_t output,
@@ -453,6 +476,19 @@ ezo_result_t ezo_do_build_pressure_command(char *buffer,
                                            double pressure_kpa,
                                            uint8_t decimals) {
   return ezo_common_format_fixed_command(buffer, buffer_len, "P,", pressure_kpa, decimals);
+}
+
+ezo_result_t ezo_do_build_calibration_command(char *buffer,
+                                              size_t buffer_len,
+                                              ezo_do_calibration_point_t point) {
+  switch (point) {
+  case EZO_DO_CALIBRATION_ATMOSPHERIC:
+    return ezo_do_copy_command(buffer, buffer_len, "Cal");
+  case EZO_DO_CALIBRATION_ZERO:
+    return ezo_do_copy_command(buffer, buffer_len, "Cal,0");
+  default:
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
 }
 
 ezo_result_t ezo_do_send_read_i2c(ezo_i2c_device_t *device,
@@ -548,6 +584,28 @@ ezo_result_t ezo_do_send_pressure_set_i2c(ezo_i2c_device_t *device,
   return ezo_do_send_i2c_command(device, command, EZO_COMMAND_GENERIC, timing_hint);
 }
 
+ezo_result_t ezo_do_send_calibration_query_i2c(ezo_i2c_device_t *device,
+                                               ezo_timing_hint_t *timing_hint) {
+  return ezo_do_send_i2c_command(device, "Cal,?", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_do_send_calibration_i2c(ezo_i2c_device_t *device,
+                                         ezo_do_calibration_point_t point,
+                                         ezo_timing_hint_t *timing_hint) {
+  char command[16];
+  ezo_result_t result = ezo_do_build_calibration_command(command, sizeof(command), point);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_do_send_i2c_command(device, command, EZO_COMMAND_CALIBRATION, timing_hint);
+}
+
+ezo_result_t ezo_do_send_clear_calibration_i2c(ezo_i2c_device_t *device,
+                                               ezo_timing_hint_t *timing_hint) {
+  return ezo_do_send_i2c_command(device, "Cal,clear", EZO_COMMAND_GENERIC, timing_hint);
+}
+
 ezo_result_t ezo_do_read_response_i2c(ezo_i2c_device_t *device,
                                       ezo_do_output_mask_t enabled_mask,
                                       ezo_do_reading_t *reading_out) {
@@ -607,6 +665,18 @@ ezo_result_t ezo_do_read_pressure_i2c(ezo_i2c_device_t *device,
   }
 
   return ezo_do_parse_pressure(buffer, response_len, pressure_out);
+}
+
+ezo_result_t ezo_do_read_calibration_status_i2c(ezo_i2c_device_t *device,
+                                                ezo_do_calibration_status_t *status_out) {
+  char buffer[EZO_DO_RESPONSE_BUFFER_LEN];
+  size_t response_len = 0;
+  ezo_result_t result = ezo_do_read_i2c_text(device, buffer, sizeof(buffer), &response_len);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_do_parse_calibration_status(buffer, response_len, status_out);
 }
 
 ezo_result_t ezo_do_send_read_uart(ezo_uart_device_t *device,
@@ -702,6 +772,28 @@ ezo_result_t ezo_do_send_pressure_set_uart(ezo_uart_device_t *device,
   return ezo_do_send_uart_command(device, command, EZO_COMMAND_GENERIC, timing_hint);
 }
 
+ezo_result_t ezo_do_send_calibration_query_uart(ezo_uart_device_t *device,
+                                                ezo_timing_hint_t *timing_hint) {
+  return ezo_do_send_uart_command(device, "Cal,?", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_do_send_calibration_uart(ezo_uart_device_t *device,
+                                          ezo_do_calibration_point_t point,
+                                          ezo_timing_hint_t *timing_hint) {
+  char command[16];
+  ezo_result_t result = ezo_do_build_calibration_command(command, sizeof(command), point);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_do_send_uart_command(device, command, EZO_COMMAND_CALIBRATION, timing_hint);
+}
+
+ezo_result_t ezo_do_send_clear_calibration_uart(ezo_uart_device_t *device,
+                                                ezo_timing_hint_t *timing_hint) {
+  return ezo_do_send_uart_command(device, "Cal,clear", EZO_COMMAND_GENERIC, timing_hint);
+}
+
 ezo_result_t ezo_do_read_response_uart(ezo_uart_device_t *device,
                                        ezo_do_output_mask_t enabled_mask,
                                        ezo_do_reading_t *reading_out) {
@@ -766,4 +858,17 @@ ezo_result_t ezo_do_read_pressure_uart(ezo_uart_device_t *device,
   }
 
   return ezo_do_parse_pressure(buffer, response_len, pressure_out);
+}
+
+ezo_result_t ezo_do_read_calibration_status_uart(ezo_uart_device_t *device,
+                                                 ezo_do_calibration_status_t *status_out) {
+  char buffer[EZO_DO_RESPONSE_BUFFER_LEN];
+  size_t response_len = 0;
+  ezo_result_t result =
+      ezo_do_read_uart_data_then_ok(device, buffer, sizeof(buffer), &response_len);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_do_parse_calibration_status(buffer, response_len, status_out);
 }

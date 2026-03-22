@@ -33,7 +33,7 @@ The ORP family includes the common acquisition, calibration, identity, control, 
 
 The main ORP-specific extension is an extended-range toggle.
 
-That matters because it changes the valid measurement envelope without changing the transport framing. A future typed helper should model range state explicitly if it exposes this feature at all.
+That matters because it changes the valid measurement envelope without changing the transport framing. The current typed helper models range state explicitly when it exposes this feature.
 
 ## Timing Notes
 

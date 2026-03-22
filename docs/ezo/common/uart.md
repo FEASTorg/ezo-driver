@@ -50,6 +50,7 @@ Many UART workflows are not truly one-command, one-line exchanges.
 Examples include:
 
 - a data line followed by trailing `*OK`
+- a response-code query line such as `?*OK,0` with no trailing `*OK`
 - export flows ending in `*DONE`
 - memory or recall flows that emit multiple data lines before a final status token
 - startup, sleep, wake, reset, and ready lines that can appear between higher-level operations

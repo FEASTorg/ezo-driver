@@ -8,7 +8,7 @@
 #include <string.h>
 
 enum {
-  EZO_RTD_RESPONSE_BUFFER_LEN = 64
+  EZO_RTD_RESPONSE_BUFFER_LEN = EZO_UART_MAX_TEXT_RESPONSE_LEN
 };
 
 static ezo_result_t ezo_rtd_copy_command(char *buffer, size_t buffer_len, const char *command) {
@@ -46,6 +46,11 @@ static ezo_result_t ezo_rtd_scale_to_token(ezo_rtd_scale_t scale, const char **t
   default:
     return EZO_ERR_INVALID_ARGUMENT;
   }
+}
+
+static int ezo_rtd_is_space(char value) {
+  return value == ' ' || value == '\t' || value == '\n' || value == '\r' ||
+         value == '\f' || value == '\v';
 }
 
 static ezo_result_t ezo_rtd_send_i2c_command(ezo_i2c_device_t *device,
@@ -233,6 +238,159 @@ ezo_result_t ezo_rtd_parse_calibration_status(
   return EZO_OK;
 }
 
+ezo_result_t ezo_rtd_parse_logger_status(const char *buffer,
+                                         size_t buffer_len,
+                                         ezo_rtd_logger_status_t *status_out) {
+  ezo_text_span_t fields[1];
+  size_t field_count = 0;
+  ezo_result_t result = EZO_OK;
+
+  if (status_out == NULL) {
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
+
+  result = ezo_parse_prefixed_fields(buffer, buffer_len, "?D", fields, 1, &field_count);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  if (field_count != 1) {
+    return EZO_ERR_PARSE;
+  }
+
+  return ezo_parse_text_span_uint32(fields[0], &status_out->interval_units);
+}
+
+ezo_result_t ezo_rtd_parse_memory_status(const char *buffer,
+                                         size_t buffer_len,
+                                         ezo_rtd_memory_status_t *status_out) {
+  ezo_text_span_t fields[1];
+  size_t field_count = 0;
+  ezo_result_t result = EZO_OK;
+
+  if (status_out == NULL) {
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
+
+  result = ezo_parse_prefixed_fields(buffer, buffer_len, "?M", fields, 1, &field_count);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  if (field_count != 1) {
+    return EZO_ERR_PARSE;
+  }
+
+  return ezo_parse_text_span_uint32(fields[0], &status_out->last_index);
+}
+
+ezo_result_t ezo_rtd_parse_memory_entry(const char *buffer,
+                                        size_t buffer_len,
+                                        ezo_rtd_scale_t scale,
+                                        ezo_rtd_memory_entry_t *entry_out) {
+  ezo_text_span_t fields[2];
+  size_t field_count = 0;
+  ezo_result_t result = EZO_OK;
+
+  if (entry_out == NULL || scale == EZO_RTD_SCALE_UNKNOWN) {
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
+
+  result = ezo_parse_csv_fields(buffer, buffer_len, fields, 2, &field_count);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  if (field_count != 2) {
+    return EZO_ERR_PARSE;
+  }
+
+  result = ezo_parse_text_span_uint32(fields[0], &entry_out->index);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  result = ezo_parse_text_span_double(fields[1], &entry_out->temperature);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  entry_out->scale = scale;
+  return EZO_OK;
+}
+
+ezo_result_t ezo_rtd_parse_memory_all(const char *buffer,
+                                      size_t buffer_len,
+                                      ezo_rtd_scale_t scale,
+                                      ezo_rtd_memory_value_t *values_out,
+                                      size_t values_capacity,
+                                      size_t *value_count_out) {
+  size_t start = 0;
+  size_t end = buffer_len;
+  size_t segment_start = 0;
+  size_t i = 0;
+  size_t value_count = 0;
+  ezo_result_t result = EZO_OK;
+
+  if (buffer == NULL || buffer_len == 0 || scale == EZO_RTD_SCALE_UNKNOWN ||
+      values_out == NULL || values_capacity == 0 || value_count_out == NULL) {
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
+
+  while (start < end && ezo_rtd_is_space(buffer[start])) {
+    start += 1;
+  }
+
+  while (end > start && ezo_rtd_is_space(buffer[end - 1U])) {
+    end -= 1;
+  }
+
+  if (end <= start) {
+    return EZO_ERR_PARSE;
+  }
+
+  segment_start = start;
+  for (i = start; i <= end; ++i) {
+    const int at_end = i == end;
+    size_t field_start = segment_start;
+    size_t field_end = i;
+
+    if (!at_end && buffer[i] != ',') {
+      continue;
+    }
+
+    if (value_count >= values_capacity) {
+      return EZO_ERR_BUFFER_TOO_SMALL;
+    }
+
+    while (field_start < field_end && ezo_rtd_is_space(buffer[field_start])) {
+      field_start += 1;
+    }
+
+    while (field_end > field_start && ezo_rtd_is_space(buffer[field_end - 1U])) {
+      field_end -= 1;
+    }
+
+    if (field_end <= field_start) {
+      return EZO_ERR_PARSE;
+    }
+
+    result = ezo_parse_double(buffer + field_start,
+                              field_end - field_start,
+                              &values_out[value_count].temperature);
+    if (result != EZO_OK) {
+      return result;
+    }
+
+    values_out[value_count].scale = scale;
+    value_count += 1;
+    segment_start = i + 1U;
+  }
+
+  *value_count_out = value_count;
+  return EZO_OK;
+}
+
 ezo_result_t ezo_rtd_build_scale_command(char *buffer,
                                          size_t buffer_len,
                                          ezo_rtd_scale_t scale) {
@@ -271,6 +429,12 @@ ezo_result_t ezo_rtd_build_calibration_command(char *buffer,
                                          decimals);
 }
 
+ezo_result_t ezo_rtd_build_logger_command(char *buffer,
+                                          size_t buffer_len,
+                                          uint32_t interval_units) {
+  return ezo_common_format_fixed_command(buffer, buffer_len, "D,", (double)interval_units, 0);
+}
+
 ezo_result_t ezo_rtd_send_read_i2c(ezo_i2c_device_t *device,
                                    ezo_timing_hint_t *timing_hint) {
   return ezo_rtd_send_i2c_command(device, "r", EZO_COMMAND_READ, timing_hint);
@@ -296,6 +460,65 @@ ezo_result_t ezo_rtd_send_scale_set_i2c(ezo_i2c_device_t *device,
 ezo_result_t ezo_rtd_send_calibration_query_i2c(ezo_i2c_device_t *device,
                                                 ezo_timing_hint_t *timing_hint) {
   return ezo_rtd_send_i2c_command(device, "Cal,?", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_calibration_i2c(ezo_i2c_device_t *device,
+                                          double reference_temperature,
+                                          uint8_t decimals,
+                                          ezo_timing_hint_t *timing_hint) {
+  char command[32];
+  ezo_result_t result = ezo_rtd_build_calibration_command(command,
+                                                          sizeof(command),
+                                                          reference_temperature,
+                                                          decimals);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_rtd_send_i2c_command(device, command, EZO_COMMAND_CALIBRATION, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_clear_calibration_i2c(ezo_i2c_device_t *device,
+                                                ezo_timing_hint_t *timing_hint) {
+  return ezo_rtd_send_i2c_command(device, "Cal,clear", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_logger_query_i2c(ezo_i2c_device_t *device,
+                                           ezo_timing_hint_t *timing_hint) {
+  return ezo_rtd_send_i2c_command(device, "D,?", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_logger_set_i2c(ezo_i2c_device_t *device,
+                                         uint32_t interval_units,
+                                         ezo_timing_hint_t *timing_hint) {
+  char command[16];
+  ezo_result_t result =
+      ezo_rtd_build_logger_command(command, sizeof(command), interval_units);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_rtd_send_i2c_command(device, command, EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_memory_query_i2c(ezo_i2c_device_t *device,
+                                           ezo_timing_hint_t *timing_hint) {
+  return ezo_rtd_send_i2c_command(device, "M,?", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_memory_next_i2c(ezo_i2c_device_t *device,
+                                          ezo_timing_hint_t *timing_hint) {
+  return ezo_rtd_send_i2c_command(device, "M", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_memory_all_i2c(ezo_i2c_device_t *device,
+                                         ezo_timing_hint_t *timing_hint) {
+  return ezo_rtd_send_i2c_command(device, "M,all", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_memory_clear_i2c(ezo_i2c_device_t *device,
+                                           ezo_timing_hint_t *timing_hint) {
+  return ezo_rtd_send_i2c_command(device, "M,clear", EZO_COMMAND_GENERIC, timing_hint);
 }
 
 ezo_result_t ezo_rtd_read_response_i2c(ezo_i2c_device_t *device,
@@ -336,6 +559,63 @@ ezo_result_t ezo_rtd_read_calibration_status_i2c(
   return ezo_rtd_parse_calibration_status(buffer, response_len, status_out);
 }
 
+ezo_result_t ezo_rtd_read_logger_i2c(ezo_i2c_device_t *device,
+                                     ezo_rtd_logger_status_t *status_out) {
+  char buffer[EZO_RTD_RESPONSE_BUFFER_LEN];
+  size_t response_len = 0;
+  ezo_result_t result = ezo_rtd_read_i2c_text(device, buffer, sizeof(buffer), &response_len);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_rtd_parse_logger_status(buffer, response_len, status_out);
+}
+
+ezo_result_t ezo_rtd_read_memory_status_i2c(ezo_i2c_device_t *device,
+                                            ezo_rtd_memory_status_t *status_out) {
+  char buffer[EZO_RTD_RESPONSE_BUFFER_LEN];
+  size_t response_len = 0;
+  ezo_result_t result = ezo_rtd_read_i2c_text(device, buffer, sizeof(buffer), &response_len);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_rtd_parse_memory_status(buffer, response_len, status_out);
+}
+
+ezo_result_t ezo_rtd_read_memory_entry_i2c(ezo_i2c_device_t *device,
+                                           ezo_rtd_scale_t scale,
+                                           ezo_rtd_memory_entry_t *entry_out) {
+  char buffer[EZO_RTD_RESPONSE_BUFFER_LEN];
+  size_t response_len = 0;
+  ezo_result_t result = ezo_rtd_read_i2c_text(device, buffer, sizeof(buffer), &response_len);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_rtd_parse_memory_entry(buffer, response_len, scale, entry_out);
+}
+
+ezo_result_t ezo_rtd_read_memory_all_i2c(ezo_i2c_device_t *device,
+                                         ezo_rtd_scale_t scale,
+                                         ezo_rtd_memory_value_t *values_out,
+                                         size_t values_capacity,
+                                         size_t *value_count_out) {
+  char buffer[EZO_RTD_RESPONSE_BUFFER_LEN];
+  size_t response_len = 0;
+  ezo_result_t result = ezo_rtd_read_i2c_text(device, buffer, sizeof(buffer), &response_len);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_rtd_parse_memory_all(buffer,
+                                  response_len,
+                                  scale,
+                                  values_out,
+                                  values_capacity,
+                                  value_count_out);
+}
+
 ezo_result_t ezo_rtd_send_read_uart(ezo_uart_device_t *device,
                                     ezo_timing_hint_t *timing_hint) {
   return ezo_rtd_send_uart_command(device, "r", EZO_COMMAND_READ, timing_hint);
@@ -361,6 +641,65 @@ ezo_result_t ezo_rtd_send_scale_set_uart(ezo_uart_device_t *device,
 ezo_result_t ezo_rtd_send_calibration_query_uart(ezo_uart_device_t *device,
                                                  ezo_timing_hint_t *timing_hint) {
   return ezo_rtd_send_uart_command(device, "Cal,?", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_calibration_uart(ezo_uart_device_t *device,
+                                           double reference_temperature,
+                                           uint8_t decimals,
+                                           ezo_timing_hint_t *timing_hint) {
+  char command[32];
+  ezo_result_t result = ezo_rtd_build_calibration_command(command,
+                                                          sizeof(command),
+                                                          reference_temperature,
+                                                          decimals);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_rtd_send_uart_command(device, command, EZO_COMMAND_CALIBRATION, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_clear_calibration_uart(ezo_uart_device_t *device,
+                                                 ezo_timing_hint_t *timing_hint) {
+  return ezo_rtd_send_uart_command(device, "Cal,clear", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_logger_query_uart(ezo_uart_device_t *device,
+                                            ezo_timing_hint_t *timing_hint) {
+  return ezo_rtd_send_uart_command(device, "D,?", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_logger_set_uart(ezo_uart_device_t *device,
+                                          uint32_t interval_units,
+                                          ezo_timing_hint_t *timing_hint) {
+  char command[16];
+  ezo_result_t result =
+      ezo_rtd_build_logger_command(command, sizeof(command), interval_units);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_rtd_send_uart_command(device, command, EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_memory_query_uart(ezo_uart_device_t *device,
+                                            ezo_timing_hint_t *timing_hint) {
+  return ezo_rtd_send_uart_command(device, "M,?", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_memory_next_uart(ezo_uart_device_t *device,
+                                           ezo_timing_hint_t *timing_hint) {
+  return ezo_rtd_send_uart_command(device, "M", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_memory_all_uart(ezo_uart_device_t *device,
+                                          ezo_timing_hint_t *timing_hint) {
+  return ezo_rtd_send_uart_command(device, "M,all", EZO_COMMAND_GENERIC, timing_hint);
+}
+
+ezo_result_t ezo_rtd_send_memory_clear_uart(ezo_uart_device_t *device,
+                                            ezo_timing_hint_t *timing_hint) {
+  return ezo_rtd_send_uart_command(device, "M,clear", EZO_COMMAND_GENERIC, timing_hint);
 }
 
 ezo_result_t ezo_rtd_read_response_uart(ezo_uart_device_t *device,
@@ -405,4 +744,65 @@ ezo_result_t ezo_rtd_read_calibration_status_uart(
   }
 
   return ezo_rtd_parse_calibration_status(buffer, response_len, status_out);
+}
+
+ezo_result_t ezo_rtd_read_logger_uart(ezo_uart_device_t *device,
+                                      ezo_rtd_logger_status_t *status_out) {
+  char buffer[EZO_RTD_RESPONSE_BUFFER_LEN];
+  size_t response_len = 0;
+  ezo_result_t result =
+      ezo_rtd_read_uart_data_then_ok(device, buffer, sizeof(buffer), &response_len);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_rtd_parse_logger_status(buffer, response_len, status_out);
+}
+
+ezo_result_t ezo_rtd_read_memory_status_uart(ezo_uart_device_t *device,
+                                             ezo_rtd_memory_status_t *status_out) {
+  char buffer[EZO_RTD_RESPONSE_BUFFER_LEN];
+  size_t response_len = 0;
+  ezo_result_t result =
+      ezo_rtd_read_uart_data_then_ok(device, buffer, sizeof(buffer), &response_len);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_rtd_parse_memory_status(buffer, response_len, status_out);
+}
+
+ezo_result_t ezo_rtd_read_memory_entry_uart(ezo_uart_device_t *device,
+                                            ezo_rtd_scale_t scale,
+                                            ezo_rtd_memory_entry_t *entry_out) {
+  char buffer[EZO_RTD_RESPONSE_BUFFER_LEN];
+  size_t response_len = 0;
+  ezo_result_t result =
+      ezo_rtd_read_uart_data_then_ok(device, buffer, sizeof(buffer), &response_len);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_rtd_parse_memory_entry(buffer, response_len, scale, entry_out);
+}
+
+ezo_result_t ezo_rtd_read_memory_all_uart(ezo_uart_device_t *device,
+                                          ezo_rtd_scale_t scale,
+                                          ezo_rtd_memory_value_t *values_out,
+                                          size_t values_capacity,
+                                          size_t *value_count_out) {
+  char buffer[EZO_RTD_RESPONSE_BUFFER_LEN];
+  size_t response_len = 0;
+  ezo_result_t result =
+      ezo_rtd_read_uart_data_then_ok(device, buffer, sizeof(buffer), &response_len);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return ezo_rtd_parse_memory_all(buffer,
+                                  response_len,
+                                  scale,
+                                  values_out,
+                                  values_capacity,
+                                  value_count_out);
 }

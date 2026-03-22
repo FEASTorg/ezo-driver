@@ -39,11 +39,11 @@ The pH family carries the common families you would expect:
 
 ## Product-Specific Features
 
-The pH family adds three behaviors that matter to future typed helpers:
+The pH family adds three behaviors that matter to the typed helper layer:
 
 ### Temperature Compensation
 
-Temperature is part of the measurement model, not just a side setting. A future product helper should treat compensation input as a first-class operation.
+Temperature is part of the measurement model, not just a side setting. The typed product helper treats compensation input as a first-class operation.
 
 ### Slope Reporting
 
@@ -67,4 +67,4 @@ If the repo grows typed product helpers, pH is a good early candidate because:
 - the compensation path maps cleanly to existing helpers
 - the product-specific surface is small but meaningful
 
-The likely next layer is a small pH helper set for temperature compensation, slope query, extended range, and calibration-state inspection.
+The current typed pH module now covers temperature compensation, calibration commands/status, slope query, and the extended-range toggle over both I2C and UART.

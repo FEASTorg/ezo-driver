@@ -11,6 +11,7 @@ static void test_parse_helpers_cover_reading_output_config_and_queries(void) {
   ezo_do_temperature_compensation_t temperature;
   ezo_do_salinity_compensation_t salinity;
   ezo_do_pressure_compensation_t pressure;
+  ezo_do_calibration_status_t calibration;
 
   assert(ezo_do_parse_reading("8.42",
                               strlen("8.42"),
@@ -33,6 +34,9 @@ static void test_parse_helpers_cover_reading_output_config_and_queries(void) {
 
   assert(ezo_do_parse_pressure("?P,101.3", strlen("?P,101.3"), &pressure) == EZO_OK);
   assert(pressure.pressure_kpa > 101.2 && pressure.pressure_kpa < 101.4);
+
+  assert(ezo_do_parse_calibration_status("?Cal,2", strlen("?Cal,2"), &calibration) == EZO_OK);
+  assert(calibration.level == 2U);
 }
 
 static void test_command_builders_format_expected_commands(void) {
@@ -51,6 +55,11 @@ static void test_command_builders_format_expected_commands(void) {
 
   assert(ezo_do_build_pressure_command(command, sizeof(command), 101.3, 2) == EZO_OK);
   assert(strcmp(command, "P,101.30") == 0);
+
+  assert(ezo_do_build_calibration_command(command,
+                                          sizeof(command),
+                                          EZO_DO_CALIBRATION_ZERO) == EZO_OK);
+  assert(strcmp(command, "Cal,0") == 0);
 }
 
 static void test_i2c_helpers_send_and_parse_typed_responses(void) {
@@ -63,6 +72,7 @@ static void test_i2c_helpers_send_and_parse_typed_responses(void) {
   ezo_do_output_config_t output_config;
   ezo_do_salinity_compensation_t salinity;
   ezo_do_reading_t reading;
+  ezo_do_calibration_status_t calibration;
 
   ezo_fake_transport_init(&fake);
   assert(ezo_device_init(&device, 97, ezo_fake_transport_vtable(), &fake) == EZO_OK);
@@ -94,6 +104,16 @@ static void test_i2c_helpers_send_and_parse_typed_responses(void) {
   assert(ezo_do_read_salinity_i2c(&device, &salinity) == EZO_OK);
   assert(salinity.value > 14.6 && salinity.value < 14.8);
   assert(salinity.unit == EZO_DO_SALINITY_UNIT_PPT);
+
+  assert(ezo_do_send_calibration_i2c(&device, EZO_DO_CALIBRATION_ATMOSPHERIC, &hint) == EZO_OK);
+  assert(hint.wait_ms == 1300);
+  assert(memcmp(fake.last_tx_bytes, "Cal", strlen("Cal")) == 0);
+
+  ezo_fake_transport_set_response(&fake, (const uint8_t[]){1, '?', 'C', 'a', 'l', ',', '1', 0},
+                                  8);
+  assert(ezo_do_send_calibration_query_i2c(&device, &hint) == EZO_OK);
+  assert(ezo_do_read_calibration_status_i2c(&device, &calibration) == EZO_OK);
+  assert(calibration.level == 1U);
 }
 
 static void test_uart_helpers_cover_plain_read_and_query_sequences(void) {
@@ -108,6 +128,7 @@ static void test_uart_helpers_cover_plain_read_and_query_sequences(void) {
   ezo_do_reading_t reading;
   ezo_do_pressure_compensation_t pressure;
   ezo_do_output_config_t output_config;
+  ezo_do_calibration_status_t calibration;
 
   ezo_fake_uart_transport_init(&fake);
   assert(ezo_uart_device_init(&device, ezo_fake_uart_transport_vtable(), &fake) == EZO_OK);
@@ -136,6 +157,14 @@ static void test_uart_helpers_cover_plain_read_and_query_sequences(void) {
   assert(ezo_do_read_output_config_uart(&device, &output_config) == EZO_OK);
   assert(output_config.enabled_mask ==
          (EZO_DO_OUTPUT_MG_L | EZO_DO_OUTPUT_PERCENT_SATURATION));
+
+  ezo_fake_uart_transport_set_response(&fake,
+                                       (const uint8_t[]){'?', 'C', 'a', 'l', ',', '2', '\r', '*',
+                                                         'O', 'K', '\r'},
+                                       11);
+  assert(ezo_do_send_calibration_query_uart(&device, &hint) == EZO_OK);
+  assert(ezo_do_read_calibration_status_uart(&device, &calibration) == EZO_OK);
+  assert(calibration.level == 2U);
 }
 
 int main(void) {

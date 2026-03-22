@@ -24,6 +24,11 @@ typedef enum {
   EZO_PH_CALIBRATION_POINT_HIGH
 } ezo_ph_calibration_point_t;
 
+typedef enum {
+  EZO_PH_EXTENDED_RANGE_DISABLED = 0,
+  EZO_PH_EXTENDED_RANGE_ENABLED = 1
+} ezo_ph_extended_range_t;
+
 typedef struct {
   double ph;
 } ezo_ph_reading_t;
@@ -42,6 +47,10 @@ typedef struct {
   double neutral_mv;
 } ezo_ph_slope_t;
 
+typedef struct {
+  ezo_ph_extended_range_t enabled;
+} ezo_ph_extended_range_status_t;
+
 ezo_result_t ezo_ph_parse_reading(const char *buffer,
                                   size_t buffer_len,
                                   ezo_ph_reading_t *reading_out);
@@ -58,6 +67,10 @@ ezo_result_t ezo_ph_parse_slope(const char *buffer,
                                 size_t buffer_len,
                                 ezo_ph_slope_t *slope_out);
 
+ezo_result_t ezo_ph_parse_extended_range(const char *buffer,
+                                         size_t buffer_len,
+                                         ezo_ph_extended_range_status_t *status_out);
+
 ezo_result_t ezo_ph_build_temperature_command(char *buffer,
                                               size_t buffer_len,
                                               double temperature_c,
@@ -68,6 +81,10 @@ ezo_result_t ezo_ph_build_calibration_command(char *buffer,
                                               ezo_ph_calibration_point_t point,
                                               double reference_ph,
                                               uint8_t decimals);
+
+ezo_result_t ezo_ph_build_extended_range_command(char *buffer,
+                                                 size_t buffer_len,
+                                                 ezo_ph_extended_range_t enabled);
 
 ezo_result_t ezo_ph_send_read_i2c(ezo_i2c_device_t *device,
                                   ezo_timing_hint_t *timing_hint);
@@ -88,8 +105,24 @@ ezo_result_t ezo_ph_send_temperature_set_i2c(ezo_i2c_device_t *device,
 ezo_result_t ezo_ph_send_calibration_query_i2c(ezo_i2c_device_t *device,
                                                ezo_timing_hint_t *timing_hint);
 
+ezo_result_t ezo_ph_send_calibration_i2c(ezo_i2c_device_t *device,
+                                         ezo_ph_calibration_point_t point,
+                                         double reference_ph,
+                                         uint8_t decimals,
+                                         ezo_timing_hint_t *timing_hint);
+
+ezo_result_t ezo_ph_send_clear_calibration_i2c(ezo_i2c_device_t *device,
+                                               ezo_timing_hint_t *timing_hint);
+
 ezo_result_t ezo_ph_send_slope_query_i2c(ezo_i2c_device_t *device,
                                          ezo_timing_hint_t *timing_hint);
+
+ezo_result_t ezo_ph_send_extended_range_query_i2c(ezo_i2c_device_t *device,
+                                                  ezo_timing_hint_t *timing_hint);
+
+ezo_result_t ezo_ph_send_extended_range_set_i2c(ezo_i2c_device_t *device,
+                                                ezo_ph_extended_range_t enabled,
+                                                ezo_timing_hint_t *timing_hint);
 
 ezo_result_t ezo_ph_read_response_i2c(ezo_i2c_device_t *device,
                                       ezo_ph_reading_t *reading_out);
@@ -102,6 +135,9 @@ ezo_result_t ezo_ph_read_calibration_status_i2c(ezo_i2c_device_t *device,
 
 ezo_result_t ezo_ph_read_slope_i2c(ezo_i2c_device_t *device,
                                    ezo_ph_slope_t *slope_out);
+
+ezo_result_t ezo_ph_read_extended_range_i2c(ezo_i2c_device_t *device,
+                                            ezo_ph_extended_range_status_t *status_out);
 
 ezo_result_t ezo_ph_send_read_uart(ezo_uart_device_t *device,
                                    ezo_timing_hint_t *timing_hint);
@@ -122,8 +158,24 @@ ezo_result_t ezo_ph_send_temperature_set_uart(ezo_uart_device_t *device,
 ezo_result_t ezo_ph_send_calibration_query_uart(ezo_uart_device_t *device,
                                                 ezo_timing_hint_t *timing_hint);
 
+ezo_result_t ezo_ph_send_calibration_uart(ezo_uart_device_t *device,
+                                          ezo_ph_calibration_point_t point,
+                                          double reference_ph,
+                                          uint8_t decimals,
+                                          ezo_timing_hint_t *timing_hint);
+
+ezo_result_t ezo_ph_send_clear_calibration_uart(ezo_uart_device_t *device,
+                                                ezo_timing_hint_t *timing_hint);
+
 ezo_result_t ezo_ph_send_slope_query_uart(ezo_uart_device_t *device,
                                           ezo_timing_hint_t *timing_hint);
+
+ezo_result_t ezo_ph_send_extended_range_query_uart(ezo_uart_device_t *device,
+                                                   ezo_timing_hint_t *timing_hint);
+
+ezo_result_t ezo_ph_send_extended_range_set_uart(ezo_uart_device_t *device,
+                                                 ezo_ph_extended_range_t enabled,
+                                                 ezo_timing_hint_t *timing_hint);
 
 ezo_result_t ezo_ph_read_response_uart(ezo_uart_device_t *device,
                                        ezo_ph_reading_t *reading_out);
@@ -142,6 +194,9 @@ ezo_result_t ezo_ph_read_calibration_status_uart(
 
 ezo_result_t ezo_ph_read_slope_uart(ezo_uart_device_t *device,
                                     ezo_ph_slope_t *slope_out);
+
+ezo_result_t ezo_ph_read_extended_range_uart(ezo_uart_device_t *device,
+                                             ezo_ph_extended_range_status_t *status_out);
 
 #ifdef __cplusplus
 }

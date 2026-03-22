@@ -10,6 +10,7 @@ static void test_parse_helpers_cover_reading_and_queries(void) {
   ezo_ph_temperature_compensation_t temperature;
   ezo_ph_calibration_status_t calibration;
   ezo_ph_slope_t slope;
+  ezo_ph_extended_range_status_t extended_range;
 
   assert(ezo_ph_parse_reading("7.156", strlen("7.156"), &reading) == EZO_OK);
   assert(reading.ph > 7.15 && reading.ph < 7.16);
@@ -26,6 +27,10 @@ static void test_parse_helpers_cover_reading_and_queries(void) {
   assert(slope.acid_percent > 99.6 && slope.acid_percent < 99.8);
   assert(slope.base_percent > 100.2 && slope.base_percent < 100.4);
   assert(slope.neutral_mv > -0.90 && slope.neutral_mv < -0.88);
+
+  assert(ezo_ph_parse_extended_range("?pHext,1", strlen("?pHext,1"), &extended_range) ==
+         EZO_OK);
+  assert(extended_range.enabled == EZO_PH_EXTENDED_RANGE_ENABLED);
 }
 
 static void test_command_builders_format_expected_commands(void) {
@@ -40,6 +45,11 @@ static void test_command_builders_format_expected_commands(void) {
                                           10.0,
                                           2) == EZO_OK);
   assert(strcmp(command, "Cal,high,10.00") == 0);
+
+  assert(ezo_ph_build_extended_range_command(command,
+                                             sizeof(command),
+                                             EZO_PH_EXTENDED_RANGE_DISABLED) == EZO_OK);
+  assert(strcmp(command, "pHext,0") == 0);
 }
 
 static void test_i2c_helpers_send_and_parse_typed_responses(void) {
@@ -51,6 +61,7 @@ static void test_i2c_helpers_send_and_parse_typed_responses(void) {
   ezo_timing_hint_t hint;
   ezo_ph_slope_t slope;
   ezo_ph_reading_t reading;
+  ezo_ph_extended_range_status_t extended_range;
 
   ezo_fake_transport_init(&fake);
   assert(ezo_device_init(&device, 99, ezo_fake_transport_vtable(), &fake) == EZO_OK);
@@ -69,6 +80,21 @@ static void test_i2c_helpers_send_and_parse_typed_responses(void) {
   assert(hint.wait_ms == 300);
   assert(ezo_ph_read_slope_i2c(&device, &slope) == EZO_OK);
   assert(slope.base_percent > 100.2 && slope.base_percent < 100.4);
+
+  assert(ezo_ph_send_calibration_i2c(&device,
+                                     EZO_PH_CALIBRATION_POINT_MID,
+                                     7.0,
+                                     2,
+                                     &hint) == EZO_OK);
+  assert(hint.wait_ms == 900);
+  assert(memcmp(fake.last_tx_bytes, "Cal,mid,7.00", strlen("Cal,mid,7.00")) == 0);
+
+  ezo_fake_transport_set_response(&fake, (const uint8_t[]){1, '?', 'p', 'H', 'e', 'x', 't', ',',
+                                                           '0', 0},
+                                  10);
+  assert(ezo_ph_send_extended_range_query_i2c(&device, &hint) == EZO_OK);
+  assert(ezo_ph_read_extended_range_i2c(&device, &extended_range) == EZO_OK);
+  assert(extended_range.enabled == EZO_PH_EXTENDED_RANGE_DISABLED);
 }
 
 static void test_uart_helpers_cover_plain_read_and_sequence_flows(void) {
@@ -82,6 +108,7 @@ static void test_uart_helpers_cover_plain_read_and_sequence_flows(void) {
   ezo_timing_hint_t hint;
   ezo_ph_reading_t reading;
   ezo_ph_temperature_compensation_t temperature;
+  ezo_ph_extended_range_status_t extended_range;
 
   ezo_fake_uart_transport_init(&fake);
   assert(ezo_uart_device_init(&device, ezo_fake_uart_transport_vtable(), &fake) == EZO_OK);
@@ -110,6 +137,17 @@ static void test_uart_helpers_cover_plain_read_and_sequence_flows(void) {
   assert(hint.wait_ms == 900);
   assert(ezo_ph_read_response_with_temp_comp_uart(&device, &reading) == EZO_OK);
   assert(reading.ph > 8.90 && reading.ph < 8.92);
+
+  assert(ezo_ph_send_clear_calibration_uart(&device, &hint) == EZO_OK);
+  assert(hint.wait_ms == 300);
+
+  ezo_fake_uart_transport_set_response(&fake,
+                                       (const uint8_t[]){'?', 'p', 'H', 'e', 'x', 't', ',', '1',
+                                                         '\r', '*', 'O', 'K', '\r'},
+                                       13);
+  assert(ezo_ph_send_extended_range_query_uart(&device, &hint) == EZO_OK);
+  assert(ezo_ph_read_extended_range_uart(&device, &extended_range) == EZO_OK);
+  assert(extended_range.enabled == EZO_PH_EXTENDED_RANGE_ENABLED);
 }
 
 int main(void) {
