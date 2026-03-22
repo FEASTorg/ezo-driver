@@ -77,6 +77,11 @@ ezo_result_t ezo_uart_read_line(ezo_uart_device_t *device,
                                 size_t *response_len,
                                 ezo_uart_response_kind_t *response_kind);
 
+ezo_result_t ezo_uart_read_terminal_response(ezo_uart_device_t *device,
+                                             ezo_uart_response_kind_t *response_kind);
+
+ezo_result_t ezo_uart_read_ok(ezo_uart_device_t *device);
+
 int ezo_uart_response_kind_is_control(ezo_uart_response_kind_t response_kind);
 int ezo_uart_response_kind_is_terminal(ezo_uart_response_kind_t response_kind);
 

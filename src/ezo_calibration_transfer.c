@@ -65,8 +65,6 @@ static ezo_result_t ezo_calibration_read_uart_data_then_ok(
     size_t buffer_len,
     size_t *response_len) {
   ezo_uart_response_kind_t response_kind = EZO_UART_RESPONSE_UNKNOWN;
-  char status_buffer[8];
-  size_t status_len = 0;
   ezo_result_t result =
       ezo_uart_read_line(device, buffer, buffer_len, response_len, &response_kind);
   if (result != EZO_OK) {
@@ -77,16 +75,7 @@ static ezo_result_t ezo_calibration_read_uart_data_then_ok(
     return EZO_ERR_PROTOCOL;
   }
 
-  result = ezo_uart_read_line(device,
-                              status_buffer,
-                              sizeof(status_buffer),
-                              &status_len,
-                              &response_kind);
-  if (result != EZO_OK) {
-    return result;
-  }
-
-  return response_kind == EZO_UART_RESPONSE_OK ? EZO_OK : EZO_ERR_PROTOCOL;
+  return ezo_uart_read_ok(device);
 }
 
 ezo_result_t ezo_calibration_parse_export_info(

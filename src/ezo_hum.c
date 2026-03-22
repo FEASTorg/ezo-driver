@@ -112,18 +112,12 @@ static ezo_result_t ezo_hum_read_uart_data_then_ok(ezo_uart_device_t *device,
                                                    char *buffer,
                                                    size_t buffer_len,
                                                    size_t *response_len) {
-  char status_buffer[8];
-  size_t status_len = 0;
   ezo_result_t result = ezo_hum_read_uart_data_line(device, buffer, buffer_len, response_len);
   if (result != EZO_OK) {
     return result;
   }
 
-  return ezo_hum_read_uart_line_of_kind(device,
-                                        EZO_UART_RESPONSE_OK,
-                                        status_buffer,
-                                        sizeof(status_buffer),
-                                        &status_len);
+  return ezo_uart_read_ok(device);
 }
 
 static ezo_result_t ezo_hum_parse_output_field(ezo_text_span_t field,

@@ -147,13 +147,7 @@ static ezo_result_t ezo_ph_read_uart_data_line(ezo_uart_device_t *device,
 }
 
 static ezo_result_t ezo_ph_expect_uart_ok(ezo_uart_device_t *device) {
-  char buffer[8];
-  size_t response_len = 0;
-  return ezo_ph_read_uart_line_of_kind(device,
-                                       EZO_UART_RESPONSE_OK,
-                                       buffer,
-                                       sizeof(buffer),
-                                       &response_len);
+  return ezo_uart_read_ok(device);
 }
 
 static ezo_result_t ezo_ph_read_uart_data_then_ok(ezo_uart_device_t *device,

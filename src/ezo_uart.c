@@ -247,6 +247,39 @@ ezo_result_t ezo_uart_read_line(ezo_uart_device_t *device,
   return EZO_OK;
 }
 
+ezo_result_t ezo_uart_read_terminal_response(ezo_uart_device_t *device,
+                                             ezo_uart_response_kind_t *response_kind) {
+  char buffer[8];
+  size_t response_len = 0;
+  ezo_uart_response_kind_t kind = EZO_UART_RESPONSE_UNKNOWN;
+  if (response_kind == NULL) {
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
+
+  ezo_result_t result =
+      ezo_uart_read_line(device, buffer, sizeof(buffer), &response_len, &kind);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  if (!ezo_uart_response_kind_is_terminal(kind)) {
+    return EZO_ERR_PROTOCOL;
+  }
+
+  *response_kind = kind;
+  return EZO_OK;
+}
+
+ezo_result_t ezo_uart_read_ok(ezo_uart_device_t *device) {
+  ezo_uart_response_kind_t response_kind = EZO_UART_RESPONSE_UNKNOWN;
+  ezo_result_t result = ezo_uart_read_terminal_response(device, &response_kind);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  return response_kind == EZO_UART_RESPONSE_OK ? EZO_OK : EZO_ERR_PROTOCOL;
+}
+
 int ezo_uart_response_kind_is_control(ezo_uart_response_kind_t response_kind) {
   switch (response_kind) {
   case EZO_UART_RESPONSE_OK:

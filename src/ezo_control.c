@@ -161,8 +161,6 @@ static ezo_result_t ezo_control_read_uart_data_then_ok(ezo_uart_device_t *device
                                                        char *buffer,
                                                        size_t buffer_len,
                                                        size_t *response_len) {
-  char status_buffer[8];
-  size_t status_len = 0;
   ezo_result_t result = ezo_control_read_uart_line_of_kind(device,
                                                            EZO_UART_RESPONSE_DATA,
                                                            buffer,
@@ -172,11 +170,7 @@ static ezo_result_t ezo_control_read_uart_data_then_ok(ezo_uart_device_t *device
     return result;
   }
 
-  return ezo_control_read_uart_line_of_kind(device,
-                                            EZO_UART_RESPONSE_OK,
-                                            status_buffer,
-                                            sizeof(status_buffer),
-                                            &status_len);
+  return ezo_uart_read_ok(device);
 }
 
 ezo_result_t ezo_control_parse_name(const char *buffer,
