@@ -11,6 +11,7 @@ Next: read ../../commissioning/inspect_device/inspect_device.ino for identity ch
 #include <ezo_i2c_arduino_wire.h>
 
 static const unsigned long STARTUP_SETTLE_MS = 1000UL;
+/* Common EZO I2C defaults: D.O.=97, ORP=98, pH=99, EC=100, RTD=102, HUM=111. */
 static const uint8_t DEVICE_I2C_ADDRESS = 99U;
 
 static ezo_arduino_wire_context_t wire_context;

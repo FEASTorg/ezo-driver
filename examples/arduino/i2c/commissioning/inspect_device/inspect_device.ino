@@ -12,6 +12,7 @@ Next: read ../../typed/read_ph/read_ph.ino for the smallest typed read path.
 #include <ezo_product.h>
 
 static const unsigned long STARTUP_SETTLE_MS = 3000UL;
+/* Common EZO I2C defaults: D.O.=97, ORP=98, pH=99, EC=100, RTD=102, HUM=111. */
 static const uint8_t DEVICE_I2C_ADDRESS = 97U;
 
 static ezo_arduino_wire_context_t wire_context;
