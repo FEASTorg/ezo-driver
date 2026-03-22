@@ -21,6 +21,11 @@ static void test_parse_helpers_cover_shared_control_queries(void) {
   assert(status.restart_code == 'P');
   assert(status.supply_voltage > 5.03 && status.supply_voltage < 5.04);
 
+  assert(ezo_control_parse_status("?STATUS,P,4.89", strlen("?STATUS,P,4.89"), &status) ==
+         EZO_OK);
+  assert(status.restart_code == 'P');
+  assert(status.supply_voltage > 4.88 && status.supply_voltage < 4.90);
+
   assert(ezo_control_parse_led("?L,1", strlen("?L,1"), &led) == EZO_OK);
   assert(led.enabled == 1);
 
@@ -67,8 +72,8 @@ static void test_i2c_helpers_send_and_parse_shared_control_responses(void) {
   static const uint8_t info_response[] = {1, '?', 'i', ',', 'p', 'H', ',', '2', '.', '1', '6', 0};
   static const uint8_t observed_do_info_response[] = {1, '?', 'I', ',', 'D', 'O', ',', '2',
                                                       '.', '1', '6', 0};
-  static const uint8_t status_response[] = {1, '?', 'S', 't', 'a', 't', 'u', 's', ',', 'P', ',',
-                                            '5', '.', '0', '3', '8', 0};
+  static const uint8_t status_response[] = {1, '?', 'S', 'T', 'A', 'T', 'U', 'S', ',', 'P', ',',
+                                            '4', '.', '8', '9', 0};
   ezo_fake_i2c_transport_t fake;
   ezo_i2c_device_t device;
   ezo_timing_hint_t hint;
@@ -103,6 +108,7 @@ static void test_i2c_helpers_send_and_parse_shared_control_responses(void) {
   assert(ezo_control_send_status_query_i2c(&device, EZO_PRODUCT_PH, &hint) == EZO_OK);
   assert(ezo_control_read_status_i2c(&device, &status) == EZO_OK);
   assert(status.restart_code == 'P');
+  assert(status.supply_voltage > 4.88 && status.supply_voltage < 4.90);
 
   assert(ezo_control_send_switch_to_uart_i2c(&device, EZO_PRODUCT_PH, 38400, &hint) == EZO_OK);
   assert(memcmp(fake.last_tx_bytes, "Baud,38400", strlen("Baud,38400")) == 0);

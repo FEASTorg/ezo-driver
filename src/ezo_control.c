@@ -54,6 +54,66 @@ static int ezo_control_name_char_is_valid(char value) {
   return value >= '!' && value <= '~';
 }
 
+static char ezo_control_ascii_upper(char value) {
+  if (value >= 'a' && value <= 'z') {
+    return (char)(value - ('a' - 'A'));
+  }
+
+  return value;
+}
+
+static int ezo_control_text_span_equals_ascii_case_cstr(ezo_text_span_t span, const char *text) {
+  size_t i = 0;
+  size_t text_len = 0;
+
+  if (span.text == NULL || text == NULL) {
+    return 0;
+  }
+
+  text_len = strlen(text);
+  if (span.length != text_len) {
+    return 0;
+  }
+
+  for (i = 0; i < text_len; ++i) {
+    if (ezo_control_ascii_upper(span.text[i]) != ezo_control_ascii_upper(text[i])) {
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
+static ezo_result_t ezo_control_parse_prefixed_fields_ascii_case(const char *buffer,
+                                                                 size_t buffer_len,
+                                                                 const char *prefix,
+                                                                 ezo_text_span_t *fields_out,
+                                                                 size_t fields_capacity,
+                                                                 size_t *field_count_out) {
+  ezo_text_span_t parsed_prefix;
+  ezo_result_t result = EZO_OK;
+
+  if (prefix == NULL) {
+    return EZO_ERR_INVALID_ARGUMENT;
+  }
+
+  result = ezo_parse_query_response(buffer,
+                                    buffer_len,
+                                    &parsed_prefix,
+                                    fields_out,
+                                    fields_capacity,
+                                    field_count_out);
+  if (result != EZO_OK) {
+    return result;
+  }
+
+  if (!ezo_control_text_span_equals_ascii_case_cstr(parsed_prefix, prefix)) {
+    return EZO_ERR_PARSE;
+  }
+
+  return EZO_OK;
+}
+
 static ezo_result_t ezo_control_parse_query_bool(const char *buffer,
                                                  size_t buffer_len,
                                                  const char *prefix,
@@ -67,7 +127,12 @@ static ezo_result_t ezo_control_parse_query_bool(const char *buffer,
     return EZO_ERR_INVALID_ARGUMENT;
   }
 
-  result = ezo_parse_prefixed_fields(buffer, buffer_len, prefix, fields, 1, &field_count);
+  result = ezo_control_parse_prefixed_fields_ascii_case(buffer,
+                                                        buffer_len,
+                                                        prefix,
+                                                        fields,
+                                                        1,
+                                                        &field_count);
   if (result != EZO_OK) {
     return result;
   }
@@ -184,7 +249,12 @@ ezo_result_t ezo_control_parse_name(const char *buffer,
     return EZO_ERR_INVALID_ARGUMENT;
   }
 
-  result = ezo_parse_prefixed_fields(buffer, buffer_len, "?Name", fields, 1, &field_count);
+  result = ezo_control_parse_prefixed_fields_ascii_case(buffer,
+                                                        buffer_len,
+                                                        "?Name",
+                                                        fields,
+                                                        1,
+                                                        &field_count);
   if (result != EZO_OK) {
     return result;
   }
@@ -207,7 +277,12 @@ ezo_result_t ezo_control_parse_status(const char *buffer,
     return EZO_ERR_INVALID_ARGUMENT;
   }
 
-  result = ezo_parse_prefixed_fields(buffer, buffer_len, "?Status", fields, 2, &field_count);
+  result = ezo_control_parse_prefixed_fields_ascii_case(buffer,
+                                                        buffer_len,
+                                                        "?Status",
+                                                        fields,
+                                                        2,
+                                                        &field_count);
   if (result != EZO_OK) {
     return result;
   }
@@ -252,7 +327,12 @@ ezo_result_t ezo_control_parse_baud(const char *buffer,
     return EZO_ERR_INVALID_ARGUMENT;
   }
 
-  result = ezo_parse_prefixed_fields(buffer, buffer_len, "?Baud", fields, 1, &field_count);
+  result = ezo_control_parse_prefixed_fields_ascii_case(buffer,
+                                                        buffer_len,
+                                                        "?Baud",
+                                                        fields,
+                                                        1,
+                                                        &field_count);
   if (result != EZO_OK) {
     return result;
   }
