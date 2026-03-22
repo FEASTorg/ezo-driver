@@ -50,6 +50,8 @@ The device can change its TDS conversion factor. That is not a transport concern
 
 The device can enable or disable its output fields independently. This changes the payload shape and is the strongest reason not to treat EC as a generic "read one value" device.
 
+Vendor output-config replies also use an alternate query prefix shape: the documented response is `?,O,...` rather than the more common `?Prefix,...` form used by many other commands. The typed EC parser accepts that vendor-shaped response directly.
+
 ## Timing Notes
 
 The current repo read fallback of `1000 ms` is conservative for EC reads. Product-aware callers can usually wait less than that, but exact timing should still be treated as command-specific for calibration and control operations.
@@ -63,5 +65,7 @@ The current typed EC module owns:
 - probe `K` configuration
 - temperature-compensation helpers
 - calibration query/set/clear helpers
+
+The EC calibration-status query is also vendor-quirky in current materials: examples use `?CAL,...` uppercase. The parser accepts that documented form rather than assuming only `?Cal,...`.
 
 That layer sits above the transport APIs rather than complicating `src/ezo_i2c.*` or `src/ezo_uart.*`.

@@ -44,8 +44,17 @@ That means callers should expect combinations of:
 - no response on the old transport after the change
 - a need to reconnect using the new mode
 - transient reset or ready indications on UART-capable paths
+- sleep or factory-reset style control markers before the transport settles again
 
 The current core does not abstract this. It is a caller concern.
+
+In practice, vendor materials for the current families commonly show patterns such as:
+
+- an initial success acknowledgement on the current transport
+- then one or more UART state markers such as reset, ready, or sleep
+- or a transport handoff where the old path stops being useful immediately after the acknowledgement
+
+Repo code intentionally does not collapse those into one hidden mode-management helper.
 
 ## Manual Hardware Switching
 

@@ -37,6 +37,8 @@ The HUM family includes acquisition, identity, control, and protocol-switching f
 
 The device can enable or disable humidity, dew-point, and temperature outputs independently. Payload shape is therefore configuration-dependent.
 
+The documented output-config query reply uses the alternate vendor form `?,O,...` rather than the more common `?Prefix,...` query shape. The typed HUM parser accepts that vendor response directly.
+
 ### Temperature Calibration
 
 The product is factory calibrated, but the onboard temperature-calibration path still matters because humidity interpretation is temperature-sensitive. The current helper treats temperature calibration as a product-specific operation, not as a generic calibration abstraction.

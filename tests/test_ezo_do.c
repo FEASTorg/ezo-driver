@@ -21,9 +21,10 @@ static void test_parse_helpers_cover_reading_output_config_and_queries(void) {
   assert(reading.milligrams_per_liter > 8.41 && reading.milligrams_per_liter < 8.43);
   assert(reading.percent_saturation == 0.0);
 
-  assert(ezo_do_parse_output_config("?O,mg,%", strlen("?O,mg,%"), &output_config) == EZO_OK);
+  assert(ezo_do_parse_output_config("?,O,mg,%", strlen("?,O,mg,%"), &output_config) == EZO_OK);
   assert(output_config.enabled_mask ==
          (EZO_DO_OUTPUT_MG_L | EZO_DO_OUTPUT_PERCENT_SATURATION));
+  assert(ezo_do_parse_output_config("?O,mg,%", strlen("?O,mg,%"), &output_config) == EZO_OK);
 
   assert(ezo_do_parse_temperature("?T,22.4", strlen("?T,22.4"), &temperature) == EZO_OK);
   assert(temperature.temperature_c > 22.3 && temperature.temperature_c < 22.5);
@@ -32,8 +33,9 @@ static void test_parse_helpers_cover_reading_output_config_and_queries(void) {
   assert(salinity.value > 12.4 && salinity.value < 12.6);
   assert(salinity.unit == EZO_DO_SALINITY_UNIT_PPT);
 
-  assert(ezo_do_parse_pressure("?P,101.3", strlen("?P,101.3"), &pressure) == EZO_OK);
+  assert(ezo_do_parse_pressure("?,P,101.3", strlen("?,P,101.3"), &pressure) == EZO_OK);
   assert(pressure.pressure_kpa > 101.2 && pressure.pressure_kpa < 101.4);
+  assert(ezo_do_parse_pressure("?P,101.3", strlen("?P,101.3"), &pressure) == EZO_OK);
 
   assert(ezo_do_parse_calibration_status("?Cal,2", strlen("?Cal,2"), &calibration) == EZO_OK);
   assert(calibration.level == 2U);
@@ -63,7 +65,7 @@ static void test_command_builders_format_expected_commands(void) {
 }
 
 static void test_i2c_helpers_send_and_parse_typed_responses(void) {
-  static const uint8_t output_response[] = {1, '?', 'O', ',', 'm', 'g', 0};
+  static const uint8_t output_response[] = {1, '?', ',', 'O', ',', 'm', 'g', 0};
   static const uint8_t salinity_response[] = {1, '?', 'S', ',', '1', '4', '.', '7', ',',
                                               'p', 'p', 't', 0};
   ezo_fake_i2c_transport_t fake;
@@ -120,8 +122,8 @@ static void test_uart_helpers_cover_plain_read_and_query_sequences(void) {
   static const uint8_t ok_response[] = {'*', 'O', 'K', '\r'};
   static const uint8_t read_then_pressure_response[] = {
       '9', '.', '1', '0', '\r', '*', 'O', 'K', '\r',
-      '?', 'P', ',', '9', '9', '.', '8', '\r', '*', 'O', 'K', '\r'};
-  static const uint8_t output_response[] = {'?', 'O', ',', 'm', 'g', ',', '%', '\r',
+      '?', ',', 'P', ',', '9', '9', '.', '8', '\r', '*', 'O', 'K', '\r'};
+  static const uint8_t output_response[] = {'?', ',', 'O', ',', 'm', 'g', ',', '%', '\r',
                                             '*', 'O', 'K', '\r'};
   ezo_fake_uart_transport_t fake;
   ezo_uart_device_t device;

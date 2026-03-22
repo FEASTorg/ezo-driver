@@ -20,11 +20,13 @@ static void test_parse_helpers_cover_reading_and_output_config(void) {
   assert(reading.air_temperature_c == 0.0);
   assert(reading.dew_point_c > 9.1 && reading.dew_point_c < 9.3);
 
-  assert(ezo_hum_parse_output_config("?O,HUM,T,Dew", strlen("?O,HUM,T,Dew"), &output_config) ==
+  assert(ezo_hum_parse_output_config("?,O,HUM,T,Dew", strlen("?,O,HUM,T,Dew"), &output_config) ==
          EZO_OK);
   assert(output_config.enabled_mask ==
          (EZO_HUM_OUTPUT_HUMIDITY | EZO_HUM_OUTPUT_AIR_TEMPERATURE |
           EZO_HUM_OUTPUT_DEW_POINT));
+  assert(ezo_hum_parse_output_config("?O,HUM,T,Dew", strlen("?O,HUM,T,Dew"), &output_config) ==
+         EZO_OK);
 
   assert(ezo_hum_parse_temperature_calibration_status("?Tcal,1",
                                                       strlen("?Tcal,1"),
@@ -49,7 +51,7 @@ static void test_command_builders_format_expected_commands(void) {
 }
 
 static void test_i2c_helpers_send_and_parse_typed_responses(void) {
-  static const uint8_t output_response[] = {1, '?', 'O', ',', 'H', 'U', 'M', ',', 'D',
+  static const uint8_t output_response[] = {1, '?', ',', 'O', ',', 'H', 'U', 'M', ',', 'D',
                                             'e', 'w', 0};
   ezo_fake_i2c_transport_t fake;
   ezo_i2c_device_t device;
@@ -101,7 +103,7 @@ static void test_uart_helpers_cover_plain_read_and_query_sequences(void) {
   static const uint8_t ok_response[] = {'*', 'O', 'K', '\r'};
   static const uint8_t read_then_output_response[] = {
       '5', '0', '.', '1', ',', '2', '2', '.', '4', '\r', '*', 'O', 'K', '\r',
-      '?', 'O', ',', 'H', 'U', 'M', ',', 'T', '\r', '*', 'O', 'K', '\r'};
+      '?', ',', 'O', ',', 'H', 'U', 'M', ',', 'T', '\r', '*', 'O', 'K', '\r'};
   ezo_fake_uart_transport_t fake;
   ezo_uart_device_t device;
   ezo_timing_hint_t hint;

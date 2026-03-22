@@ -120,6 +120,28 @@ static ezo_result_t ezo_hum_read_uart_data_then_ok(ezo_uart_device_t *device,
   return ezo_uart_read_ok(device);
 }
 
+static int ezo_hum_output_query_prefix_is_valid(ezo_text_span_t prefix,
+                                                const ezo_text_span_t *fields,
+                                                size_t field_count,
+                                                size_t *field_offset_out) {
+  if (field_offset_out == NULL) {
+    return 0;
+  }
+
+  if (ezo_text_span_equals_cstr(prefix, "?O")) {
+    *field_offset_out = 0;
+    return 1;
+  }
+
+  if (ezo_text_span_equals_cstr(prefix, "?") && field_count > 0 &&
+      ezo_text_span_equals_cstr(fields[0], "O")) {
+    *field_offset_out = 1;
+    return 1;
+  }
+
+  return 0;
+}
+
 static ezo_result_t ezo_hum_parse_output_field(ezo_text_span_t field,
                                                ezo_hum_output_mask_t *mask_out) {
   if (mask_out == NULL) {
@@ -183,6 +205,7 @@ ezo_result_t ezo_hum_parse_output_config(const char *buffer,
   ezo_text_span_t prefix;
   ezo_text_span_t fields[EZO_SCHEMA_MAX_FIELDS];
   size_t field_count = 0;
+  size_t field_offset = 0;
   size_t i = 0;
   ezo_result_t result = EZO_OK;
   ezo_hum_output_mask_t enabled_mask = 0;
@@ -201,11 +224,11 @@ ezo_result_t ezo_hum_parse_output_config(const char *buffer,
     return result;
   }
 
-  if (!ezo_text_span_equals_cstr(prefix, "?O")) {
+  if (!ezo_hum_output_query_prefix_is_valid(prefix, fields, field_count, &field_offset)) {
     return EZO_ERR_PARSE;
   }
 
-  for (i = 0; i < field_count; ++i) {
+  for (i = field_offset; i < field_count; ++i) {
     ezo_hum_output_mask_t output = 0;
     result = ezo_hum_parse_output_field(fields[i], &output);
     if (result != EZO_OK) {

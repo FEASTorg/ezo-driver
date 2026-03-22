@@ -95,7 +95,7 @@ Product metadata rules:
 The shared parse/schema layer provides:
 
 - borrowed text spans for non-owning field views
-- CSV and `?Prefix,...` query parsing helpers
+- CSV and common `?Prefix,...` query parsing helpers
 - a small UART sequence state helper above one-line reads
 - canonical output-schema descriptors for the initial six products
 - scalar and multi-output reading structs
@@ -118,12 +118,13 @@ Primary shared entry points:
 Rules:
 
 1. Text spans borrow caller-owned buffers and are not null-terminated copies.
-2. `ezo_parse_query_response()` only handles the shared `?Prefix,...` response shape; it is not a universal parser for every device response.
-3. Query and CSV helpers trim surrounding ASCII whitespace on each field.
-4. Empty CSV fields are preserved as zero-length spans instead of being discarded.
-5. `ezo_uart_sequence_t` tracks sequence state only; it does not read from transports or interpret product-specific workflow meaning.
-6. Output schemas encode canonical field order, not guaranteed runtime configuration.
-7. Multi-output parsing requires an explicit enabled-field mask from the caller or higher layer.
+2. `ezo_parse_query_response()` only handles the common `?Prefix,...` response shape; it is not a universal parser for every device response.
+3. Some vendor query families use alternate shapes such as `?,O,...`, `?,P,...`, or product-specific capitalization differences; those remain product-layer parsing concerns instead of widening the shared helper into a universal normalizer.
+4. Query and CSV helpers trim surrounding ASCII whitespace on each field.
+5. Empty CSV fields are preserved as zero-length spans instead of being discarded.
+6. `ezo_uart_sequence_t` tracks sequence state only; it does not read from transports or interpret product-specific workflow meaning.
+7. Output schemas encode canonical field order, not guaranteed runtime configuration.
+8. Multi-output parsing requires an explicit enabled-field mask from the caller or higher layer.
 
 ## Product Module Surface
 

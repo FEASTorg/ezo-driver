@@ -46,6 +46,12 @@ That is why the current typed helper layer exposes these settings explicitly, be
 
 The product can enable or disable mg/L and percent-saturation outputs. As with EC and HUM, payload parsing belongs in a product-aware layer.
 
+The documented output-config query reply uses the alternate vendor form `?,O,...` rather than the more common `?Prefix,...` shape. The typed DO parser accepts that response directly.
+
+### Pressure Compensation Query Shape
+
+The atmospheric-pressure query is another vendor oddball: the documented reply uses `?,P,...`. That shape differs from the simpler `?T,...` and `?S,...` query families, so the DO helper treats it as product-specific parsing instead of relying on the generic shared query helper.
+
 ## Timing Notes
 
 The generic repo read hint is conservative for normal DO reads. Calibration and compensation changes should still be treated as command-specific operations rather than inferred from the measurement timing alone.

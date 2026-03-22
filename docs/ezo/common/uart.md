@@ -50,6 +50,8 @@ Examples include:
 
 - a data line followed by trailing `*OK`
 - a response-code query line such as `?*OK,0` with no trailing `*OK`
+- a sleep workflow that acknowledges and then emits a sleep-state token
+- a factory-reset workflow that acknowledges and then emits reboot-state tokens
 - export flows ending in `*DONE`
 - memory or recall flows that emit multiple data lines before a final status token
 - startup, sleep, wake, reset, and ready lines that can appear between higher-level operations
@@ -60,6 +62,7 @@ The repo-level rule is therefore:
 - callers or higher layers consume sequences by reading multiple lines
 - typed product helpers may consume both a payload line and a trailing success token when they expose a parsed success result
 - setter or admin workflows that only acknowledge success should explicitly consume that terminal token with `ezo_uart_read_ok()`
+- rebooting or sleep-triggering control flows may need more than one follow-up line to fully observe the device state
 - `ezo_uart_discard_input()` is the explicit resynchronization tool when abandoning stale or unwanted trailing lines
 
 ## Synchronization Rules
@@ -71,6 +74,7 @@ Higher layers should therefore follow these rules:
 - treat startup and power-state lines such as wake, ready, and reset as valid control events, not as transport corruption
 - consume or discard stale continuous output before starting a workflow that expects a specific next line
 - consume trailing status tokens such as `*OK` or `*DONE`, or explicitly discard them before reusing the transport
+- expect some control commands to surface state transitions after the initial acknowledgement, for example sleep or reboot markers
 - use the raw `ezo_uart_*` layer when the application needs line-by-line ownership instead of the typed helper's normalized success sequence
 - treat shipping defaults such as continuous mode enabled or `*OK` enabled as heuristics only, not as a guaranteed runtime state
 

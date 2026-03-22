@@ -25,11 +25,13 @@ static void test_parse_helpers_cover_reading_output_config_and_queries(void) {
   assert(reading.salinity_ppt == 0.0);
   assert(reading.specific_gravity > 1.024 && reading.specific_gravity < 1.026);
 
-  assert(ezo_ec_parse_output_config("?O,EC,S,SG", strlen("?O,EC,S,SG"), &output_config) ==
+  assert(ezo_ec_parse_output_config("?,O,EC,S,SG", strlen("?,O,EC,S,SG"), &output_config) ==
          EZO_OK);
   assert(output_config.enabled_mask ==
          (EZO_EC_OUTPUT_CONDUCTIVITY | EZO_EC_OUTPUT_SALINITY |
           EZO_EC_OUTPUT_SPECIFIC_GRAVITY));
+  assert(ezo_ec_parse_output_config("?O,EC,S,SG", strlen("?O,EC,S,SG"), &output_config) ==
+         EZO_OK);
 
   assert(ezo_ec_parse_temperature("?T,19.5", strlen("?T,19.5"), &temperature) == EZO_OK);
   assert(temperature.temperature_c > 19.4 && temperature.temperature_c < 19.6);
@@ -40,6 +42,8 @@ static void test_parse_helpers_cover_reading_output_config_and_queries(void) {
   assert(ezo_ec_parse_tds_factor("?TDS,0.65", strlen("?TDS,0.65"), &tds_factor) == EZO_OK);
   assert(tds_factor.factor > 0.64 && tds_factor.factor < 0.66);
 
+  assert(ezo_ec_parse_calibration_status("?CAL,2", strlen("?CAL,2"), &calibration) == EZO_OK);
+  assert(calibration.level == 2U);
   assert(ezo_ec_parse_calibration_status("?Cal,3", strlen("?Cal,3"), &calibration) == EZO_OK);
   assert(calibration.level == 3U);
 }
@@ -69,7 +73,7 @@ static void test_command_builders_format_expected_commands(void) {
 }
 
 static void test_i2c_helpers_send_and_parse_typed_responses(void) {
-  static const uint8_t output_response[] = {1, '?', 'O', ',', 'E', 'C', ',', 'T',
+  static const uint8_t output_response[] = {1, '?', ',', 'O', ',', 'E', 'C', ',', 'T',
                                             'D', 'S', ',', 'S', 'G', 0};
   static const uint8_t tds_factor_response[] = {1, '?', 'T', 'D', 'S', ',', '0', '.', '7', '1',
                                                 0};
@@ -132,7 +136,7 @@ static void test_uart_helpers_cover_plain_read_and_query_sequences(void) {
   static const uint8_t ok_response[] = {'*', 'O', 'K', '\r'};
   static const uint8_t read_then_output_response[] = {
       '5', '0', '0', '.', '0', ',', '2', '5', '0', '\r', '*', 'O', 'K', '\r',
-      '?', 'O', ',', 'E', 'C', ',', 'S', '\r', '*', 'O', 'K', '\r'};
+      '?', ',', 'O', ',', 'E', 'C', ',', 'S', '\r', '*', 'O', 'K', '\r'};
   static const uint8_t temperature_response[] = {'?', 'T', ',', '2', '4', '.', '5', '\r',
                                                  '*', 'O', 'K', '\r'};
   ezo_fake_uart_transport_t fake;
@@ -179,7 +183,7 @@ static void test_uart_helpers_cover_plain_read_and_query_sequences(void) {
   assert(temperature.temperature_c > 24.4 && temperature.temperature_c < 24.6);
 
   ezo_fake_uart_transport_set_response(&fake,
-                                       (const uint8_t[]){'?', 'C', 'a', 'l', ',', '1', '\r', '*',
+                                       (const uint8_t[]){'?', 'C', 'A', 'L', ',', '1', '\r', '*',
                                                          'O', 'K', '\r'},
                                        11);
   assert(ezo_ec_send_calibration_query_uart(&device, &hint) == EZO_OK);
