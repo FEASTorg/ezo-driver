@@ -105,7 +105,7 @@ Raw transport:
 - [`examples/arduino_smoke/arduino_smoke.ino`](./examples/arduino_smoke/arduino_smoke.ino): minimal I2C C API smoke path
 - [`examples/arduino_uart_smoke/arduino_uart_smoke.ino`](./examples/arduino_uart_smoke/arduino_uart_smoke.ino): minimal UART C API smoke path
 - [`examples/linux_read.c`](./examples/linux_read.c): minimal Linux I2C transport example
-- [`examples/linux_uart_read.c`](./examples/linux_uart_read.c): minimal Linux host POSIX UART transport example
+- [`examples/linux_uart_read.c`](./examples/linux_uart_read.c): minimal Linux host POSIX UART example with explicit response-code bootstrap and terminal-ack handling
 
 Metadata and shared control:
 
@@ -115,7 +115,8 @@ Metadata and shared control:
 Typed product helpers:
 
 - [`examples/arduino_read/arduino_read.ino`](./examples/arduino_read/arduino_read.ino): I2C C++ wrapper example
-- [`examples/arduino_uart_read/arduino_uart_read.ino`](./examples/arduino_uart_read/arduino_uart_read.ino): UART read flow with explicit timing and parse path
+- [`examples/arduino_uart_read/arduino_uart_read.ino`](./examples/arduino_uart_read/arduino_uart_read.ino): UART read flow with explicit response-code bootstrap and `*OK` ownership
+- [`examples/linux_ph_uart_read.c`](./examples/linux_ph_uart_read.c): typed Linux UART pH read example with explicit response-code bootstrap
 - [`examples/linux_ph_read.c`](./examples/linux_ph_read.c): typed Linux I2C pH read example
 - [`examples/linux_ec_read.c`](./examples/linux_ec_read.c): typed Linux I2C EC read with explicit output-config query
 - [`examples/linux_do_read.c`](./examples/linux_do_read.c): typed Linux I2C DO read with explicit output-config query
