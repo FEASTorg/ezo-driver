@@ -15,7 +15,6 @@ At the repo level, UART is treated as a line-oriented ASCII protocol:
 - callers pass command text without terminators
 - `ezo_uart_send_command()` appends a single carriage return
 - `ezo_uart_read_line()` reads one CR-terminated line
-- `ezo_uart_read_response()` is a compatibility wrapper around that same one-line primitive
 - successful reads return a null-terminated text line
 
 That matches the contract in [`src/ezo_uart.h`](../../src/ezo_uart.h) and the framing logic in [`src/ezo_uart.c`](../../src/ezo_uart.c).

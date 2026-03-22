@@ -11,8 +11,6 @@ Cross-platform Atlas Scientific EZO driver with:
 - Linux host POSIX UART support
 - host-side tests and Arduino compile CI
 
-This repository is a rewrite informed by Atlas Scientific's original reference libraries. Legacy reference code remains under [`_reference/`](./_reference/).
-
 ## Status
 
 Current implementation includes:
@@ -53,7 +51,6 @@ Public guidance docs:
 
 - [`docs/public-api-layers.md`](./docs/public-api-layers.md)
 - [`docs/support-matrix.md`](./docs/support-matrix.md)
-- [`docs/migration-guide.md`](./docs/migration-guide.md)
 
 ## Layout
 
@@ -62,7 +59,6 @@ Public guidance docs:
 - `examples/`: focused Arduino and Linux examples
 - `tests/`: host-side tests and fakes
 - `docs/`: tracked handoff docs and curated EZO product/protocol notes
-- `_reference/`: legacy reference material only
 
 ## Build
 
@@ -175,7 +171,6 @@ Primary implementation files:
 - [`docs/ezo/README.md`](./docs/ezo/README.md): curated EZO product and protocol context for this repo
 - [`docs/public-api-layers.md`](./docs/public-api-layers.md): where to start by API layer and use case
 - [`docs/support-matrix.md`](./docs/support-matrix.md): tracked public support statement and tier policy
-- [`docs/migration-guide.md`](./docs/migration-guide.md): moving from raw transport flows to shared and typed helpers
 - [`docs/architecture.md`](./docs/architecture.md): structure, boundaries, packaging, validation
 - [`docs/api-contract.md`](./docs/api-contract.md): behavioral contract for the public API
 - [`docs/canonical-library-direction.md`](./docs/canonical-library-direction.md): stable long-term direction for the canonical product-aware library
@@ -188,5 +183,4 @@ Intentionally out of scope for the current baseline:
 - async/state-machine behavior
 - hidden reconnect or resynchronization workflows around rebooting, sleep, or mode changes
 - hidden retries or hidden delays
-- compatibility with the legacy Atlas API shape
 - UART C++ wrapper

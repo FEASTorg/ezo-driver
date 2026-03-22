@@ -37,7 +37,6 @@ Everything else is supporting material:
 - `examples/`: small integration examples
 - `tests/`: host-side tests and fakes
 - `docs/`: tracked implementation docs and curated EZO product/protocol notes
-- `_reference/`: legacy reference only
 
 ## Rules
 
@@ -149,7 +148,6 @@ Explicit non-goals for the current baseline:
 - async/state-machine APIs
 - hidden reconnect or resynchronization flows around rebooting, sleep, or mode switching
 - hidden retries or hidden sleeps
-- compatibility with the legacy Atlas API shape
 - UART C++ wrapper
 
 ## Validation
@@ -167,7 +165,6 @@ The public starting-point docs for this phase are:
 
 - `docs/public-api-layers.md`
 - `docs/support-matrix.md`
-- `docs/migration-guide.md`
 
 ## Packaging
 

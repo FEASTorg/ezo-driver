@@ -91,7 +91,7 @@ static void test_posix_uart_send_command_writes_bytes(void) {
   ezo_test_pty_close(&pty);
 }
 
-static void test_posix_uart_read_response_round_trips_through_core(void) {
+static void test_posix_uart_read_line_round_trips_through_core(void) {
   static const uint8_t response[] = {'1', '2', '.', '3', '4', '\r'};
   ezo_test_pty_t pty;
   ezo_uart_posix_serial_t serial;
@@ -106,7 +106,7 @@ static void test_posix_uart_read_response_round_trips_through_core(void) {
   assert(ezo_uart_device_init(&device, ezo_uart_posix_serial_transport(), &serial) == EZO_OK);
   assert(write(pty.master_fd, response, sizeof(response)) == (ssize_t)sizeof(response));
 
-  assert(ezo_uart_read_response(&device, buffer, sizeof(buffer), &response_len, &kind) ==
+  assert(ezo_uart_read_line(&device, buffer, sizeof(buffer), &response_len, &kind) ==
          EZO_OK);
   assert(kind == EZO_UART_RESPONSE_DATA);
   assert(response_len == 5);
@@ -161,7 +161,7 @@ static void test_posix_uart_close_restores_termios(void) {
 int main(void) {
   test_posix_uart_open_rejects_invalid_arguments();
   test_posix_uart_send_command_writes_bytes();
-  test_posix_uart_read_response_round_trips_through_core();
+  test_posix_uart_read_line_round_trips_through_core();
   test_posix_uart_discard_input_flushes_pending_bytes();
   test_posix_uart_close_restores_termios();
   return 0;

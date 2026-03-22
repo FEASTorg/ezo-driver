@@ -103,10 +103,9 @@ The current baseline is still missing:
 
 - a matching UART C++ wrapper only if the C surface justifies it
 
-The tracked support matrix, migration guidance, and curated public API layer docs now live in:
+The tracked support matrix and curated public API layer docs now live in:
 
 - `docs/support-matrix.md`
-- `docs/migration-guide.md`
 - `docs/public-api-layers.md`
 
 ## Explicit non-goals

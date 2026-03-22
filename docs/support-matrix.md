@@ -58,7 +58,6 @@ Support tiers are repo claims, not vendor claims. A product moves tiers only whe
 - hidden reconnect after reboot, sleep, or mode switching
 - hidden retries or hidden timing delays
 - a fake unified device abstraction across I2C and UART
-- compatibility with the legacy Atlas API shape
 
 ## Validation Expectations Behind The Matrix
 

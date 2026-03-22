@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
 
   usleep((useconds_t)(hint.wait_ms * 1000U));
 
-  result = ezo_uart_read_response(&device, response, sizeof(response), &response_len, &kind);
+  result = ezo_uart_read_line(&device, response, sizeof(response), &response_len, &kind);
   ezo_uart_posix_serial_close(&serial);
 
   if (result != EZO_OK) {

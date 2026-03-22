@@ -226,7 +226,6 @@ Primary UART C entry points:
 - `ezo_uart_send_read()`
 - `ezo_uart_send_read_with_temp_comp()`
 - `ezo_uart_read_line()`
-- `ezo_uart_read_response()`
 - `ezo_uart_response_kind_is_control()`
 - `ezo_uart_response_kind_is_terminal()`
 - `ezo_uart_discard_input()`
@@ -258,7 +257,6 @@ UART framing rules:
 - public send helpers accept command text without terminators
 - the core appends a single `\r`
 - `ezo_uart_read_line()` reads one CR-terminated line
-- `ezo_uart_read_response()` is a compatibility wrapper around that same one-line primitive
 - returned buffers are null-terminated on success
 - `response_len` excludes the null terminator
 
@@ -316,5 +314,4 @@ Not part of the current baseline:
 - async/state-machine behavior
 - automatic reconnect or stale-input cleanup around rebooting, sleep, or mode changes
 - hidden retries or hidden delays
-- compatibility with the legacy Atlas API shape
 - UART C++ wrapper

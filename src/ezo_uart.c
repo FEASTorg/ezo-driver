@@ -247,14 +247,6 @@ ezo_result_t ezo_uart_read_line(ezo_uart_device_t *device,
   return EZO_OK;
 }
 
-ezo_result_t ezo_uart_read_response(ezo_uart_device_t *device,
-                                    char *buffer,
-                                    size_t buffer_len,
-                                    size_t *response_len,
-                                    ezo_uart_response_kind_t *response_kind) {
-  return ezo_uart_read_line(device, buffer, buffer_len, response_len, response_kind);
-}
-
 int ezo_uart_response_kind_is_control(ezo_uart_response_kind_t response_kind) {
   switch (response_kind) {
   case EZO_UART_RESPONSE_OK:

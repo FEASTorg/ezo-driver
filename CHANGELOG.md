@@ -11,7 +11,7 @@ All notable tracked changes to this rewrite will be recorded here.
 - advanced typed product helpers for pH extended range, RTD logger/memory, and HUM temperature calibration
 - typed calibration helpers for pH, EC, DO, and RTD
 - host-side fake-transport tests for the shared control/calibration-transfer modules and the expanded product helpers
-- public API layer, support-matrix, and migration-guide docs
+- public API layer and support-matrix docs
 - canonical Linux examples for device identity and shared control queries
 
 ### Changed
@@ -86,4 +86,4 @@ All notable tracked changes to this rewrite will be recorded here.
 ### Notes
 
 - Arduino IDE validation is manual only
-- `_reference/` remains legacy reference material and is not part of the product surface
+- `_reference/` remains repo-internal reference material and is not part of the product surface
