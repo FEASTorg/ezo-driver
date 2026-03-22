@@ -24,11 +24,11 @@ static void fail_fast(const char *step, ezo_result_t result) {
     return;
   }
 
-  Serial.print("driver_error_step=");
+  Serial.print(F("driver_error_step="));
   Serial.println(step);
-  Serial.print("driver_error_name=");
+  Serial.print(F("driver_error_name="));
   Serial.println(ezo_result_name(result));
-  Serial.print("driver_error_code=");
+  Serial.print(F("driver_error_code="));
   Serial.println((int)result);
   while (true) {
   }
@@ -37,7 +37,7 @@ static void fail_fast(const char *step, ezo_result_t result) {
 #define CHECK_OK(step, expr) fail_fast(step, (expr))
 
 static void drain_pending_i2c_responses() {
-  uint8_t buffer[16];
+  char buffer[16];
   size_t response_len = 0;
   ezo_device_status_t status = EZO_STATUS_UNKNOWN;
   uint8_t attempt = 0;
@@ -46,7 +46,7 @@ static void drain_pending_i2c_responses() {
   // This matters when the MCU resets but the EZO board stays powered.
   for (attempt = 0; attempt < 2U; ++attempt) {
     ezo_result_t result =
-        ezo_read_response_raw(&device, buffer, sizeof(buffer), &response_len, &status);
+        ezo_read_response(&device, buffer, sizeof(buffer), &response_len, &status);
     if (result != EZO_OK && result != EZO_ERR_BUFFER_TOO_SMALL && result != EZO_ERR_PROTOCOL) {
       fail_fast("drain_pending_responses", result);
     }
@@ -72,16 +72,16 @@ static void inspect_once() {
 
   metadata = ezo_product_get_metadata(info.product_id);
 
-  Serial.print("product_code=");
+  Serial.print(F("product_code="));
   Serial.println(info.product_code);
-  Serial.print("firmware_version=");
+  Serial.print(F("firmware_version="));
   Serial.println(info.firmware_version);
-  Serial.print("restart_code=");
+  Serial.print(F("restart_code="));
   Serial.println(status.restart_code);
-  Serial.print("supply_voltage_v=");
+  Serial.print(F("supply_voltage_v="));
   Serial.println(status.supply_voltage, 3);
   if (metadata != NULL) {
-    Serial.print("default_i2c_address=");
+    Serial.print(F("default_i2c_address="));
     Serial.println(metadata->default_i2c_address);
   }
 }
@@ -90,7 +90,7 @@ void setup() {
   Serial.begin(115200);
   Wire.begin();
 
-  Serial.print("configured_i2c_address=");
+  Serial.print(F("configured_i2c_address="));
   Serial.println(DEVICE_I2C_ADDRESS);
 
   CHECK_OK("init_wire_context", ezo_arduino_wire_context_init(&wire_context, &Wire));

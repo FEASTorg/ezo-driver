@@ -65,6 +65,8 @@ static void test_builders_cover_shared_control_commands(void) {
 
 static void test_i2c_helpers_send_and_parse_shared_control_responses(void) {
   static const uint8_t info_response[] = {1, '?', 'i', ',', 'p', 'H', ',', '2', '.', '1', '6', 0};
+  static const uint8_t observed_do_info_response[] = {1, '?', 'I', ',', 'D', 'O', ',', '2',
+                                                      '.', '1', '6', 0};
   static const uint8_t status_response[] = {1, '?', 'S', 't', 'a', 't', 'u', 's', ',', 'P', ',',
                                             '5', '.', '0', '3', '8', 0};
   ezo_fake_i2c_transport_t fake;
@@ -86,6 +88,15 @@ static void test_i2c_helpers_send_and_parse_shared_control_responses(void) {
   assert(hint.wait_ms == 300);
   assert(ezo_control_read_info_i2c(&device, &info) == EZO_OK);
   assert(info.product_id == EZO_PRODUCT_PH);
+  assert(strcmp(info.firmware_version, "2.16") == 0);
+
+  ezo_fake_i2c_transport_set_response(&fake,
+                                      observed_do_info_response,
+                                      sizeof(observed_do_info_response));
+  assert(ezo_control_send_info_query_i2c(&device, EZO_PRODUCT_UNKNOWN, &hint) == EZO_OK);
+  assert(ezo_control_read_info_i2c(&device, &info) == EZO_OK);
+  assert(info.product_id == EZO_PRODUCT_DO);
+  assert(strcmp(info.product_code, "DO") == 0);
   assert(strcmp(info.firmware_version, "2.16") == 0);
 
   ezo_fake_i2c_transport_set_response(&fake, status_response, sizeof(status_response));

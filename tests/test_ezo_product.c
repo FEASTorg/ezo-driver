@@ -38,6 +38,16 @@ static void test_parse_device_info_accepts_unrecognized_product_code(void) {
   assert(strcmp(info.firmware_version, "1.00") == 0);
 }
 
+static void test_parse_device_info_accepts_observed_uppercase_identity_variant(void) {
+  const char *response = "?I,DO,2.16";
+  ezo_device_info_t info;
+
+  assert(ezo_parse_device_info(response, strlen(response), &info) == EZO_OK);
+  assert(info.product_id == EZO_PRODUCT_DO);
+  assert(strcmp(info.product_code, "DO") == 0);
+  assert(strcmp(info.firmware_version, "2.16") == 0);
+}
+
 static void test_parse_device_info_rejects_non_identity_payloads(void) {
   const char *response = "?Status,P,5.038";
   ezo_device_info_t info;
@@ -186,6 +196,7 @@ static void test_product_timing_lookup_uses_transport_specific_profiles(void) {
 int main(void) {
   test_parse_device_info_for_initial_products();
   test_parse_device_info_accepts_unrecognized_product_code();
+  test_parse_device_info_accepts_observed_uppercase_identity_variant();
   test_parse_device_info_rejects_non_identity_payloads();
   test_product_lookup_accepts_normalized_short_codes();
   test_product_metadata_registry_exposes_defaults_and_support_tiers();

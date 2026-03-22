@@ -379,13 +379,19 @@ ezo_result_t ezo_parse_device_info(const char *buffer,
     size_t prefix_start = 0;
     size_t prefix_end = 0;
     size_t prefix_len = 0;
+    char prefix_first = '\0';
+    char prefix_second = '\0';
 
     ezo_product_trim_range(buffer + start, first_comma - start, &prefix_start, &prefix_end);
     prefix_len = prefix_end - prefix_start;
-    if (!((prefix_len == 2 &&
-           buffer[start + prefix_start] == '?' &&
-           buffer[start + prefix_start + 1U] == 'i') ||
-          (prefix_len == 1 && buffer[start + prefix_start] == 'i'))) {
+    prefix_first = buffer[start + prefix_start];
+    if (prefix_len > 1U) {
+      prefix_second = buffer[start + prefix_start + 1U];
+    }
+
+    if (!((prefix_len == 2 && prefix_first == '?' &&
+           ezo_product_ascii_upper(prefix_second) == 'I') ||
+          (prefix_len == 1 && ezo_product_ascii_upper(prefix_first) == 'I'))) {
       return EZO_ERR_PARSE;
     }
   }
