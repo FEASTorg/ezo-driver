@@ -12,6 +12,10 @@ Next: read ../typed/read_do.c for the bare minimum read path.
 
 #include <stdio.h>
 
+static const char *bool_name(int value) {
+  return value ? "enabled" : "disabled";
+}
+
 static const char *salinity_unit_name(ezo_do_salinity_unit_t unit) {
   return unit == EZO_DO_SALINITY_UNIT_PPT ? "ppt" : "us_cm";
 }
@@ -121,7 +125,7 @@ int main(int argc, char **argv) {
   printf("planned_temperature_c=%.3f\n", planned_temperature_c);
   printf("planned_salinity_ppt=%.3f\n", planned_salinity_ppt);
   printf("planned_pressure_kpa=%.3f\n", planned_pressure_kpa);
-  printf("planned_percent_saturation_output=%s\n", ezo_example_bool_name(1));
+  printf("planned_percent_saturation_output=%s\n", bool_name(1));
 
   if (apply_requested) {
     result = ezo_do_send_temperature_set_uart(&session.device, planned_temperature_c, 2, &hint);

@@ -9,6 +9,7 @@ Next: read ../commissioning/readiness_check.c to inspect calibration state befor
 #include "example_i2c.h"
 
 #include "ezo_calibration_transfer.h"
+#include "ezo_product.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -105,7 +106,7 @@ int main(int argc, char **argv) {
   }
 
   printf("transport=i2c\n");
-  printf("product=%s\n", ezo_example_product_name(product_id));
+  printf("product=%s\n", metadata->vendor_short_code);
   printf("device_path=%s\n", options.device_path);
   printf("address=%u\n", (unsigned)options.address);
   printf("export_chunk_count=%u\n", (unsigned)export_info.chunk_count);

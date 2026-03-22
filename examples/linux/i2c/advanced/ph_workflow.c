@@ -12,6 +12,10 @@ Next: read calibration_transfer.c for export/import workflows.
 
 #include <stdio.h>
 
+static const char *bool_name(int value) {
+  return value ? "enabled" : "disabled";
+}
+
 static const char *calibration_name(ezo_ph_calibration_level_t level) {
   switch (level) {
     case EZO_PH_CALIBRATION_NONE:
@@ -94,10 +98,10 @@ int main(int argc, char **argv) {
   printf("current_slope_base_percent=%.3f\n", slope.base_percent);
   printf("current_slope_neutral_mv=%.3f\n", slope.neutral_mv);
   printf("current_extended_range=%s\n",
-         ezo_example_bool_name(extended_range.enabled == EZO_PH_EXTENDED_RANGE_ENABLED));
+         bool_name(extended_range.enabled == EZO_PH_EXTENDED_RANGE_ENABLED));
   printf("apply_requested=%d\n", apply_requested);
   printf("planned_temperature_c=%.3f\n", planned_temperature_c);
-  printf("planned_extended_range=%s\n", ezo_example_bool_name(1));
+  printf("planned_extended_range=%s\n", bool_name(1));
 
   if (apply_requested) {
     result = ezo_ph_send_temperature_set_i2c(&session.device, planned_temperature_c, 2, &hint);
@@ -131,7 +135,7 @@ int main(int argc, char **argv) {
 
     printf("post_temperature_compensation_c=%.3f\n", temperature.temperature_c);
     printf("post_extended_range=%s\n",
-           ezo_example_bool_name(extended_range.enabled == EZO_PH_EXTENDED_RANGE_ENABLED));
+           bool_name(extended_range.enabled == EZO_PH_EXTENDED_RANGE_ENABLED));
   }
 
   ezo_example_close_i2c(&session);

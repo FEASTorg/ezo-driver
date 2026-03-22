@@ -16,6 +16,33 @@ static int line_equals(const char *buffer, size_t buffer_len, const char *text) 
   return buffer_len == expected_len && memcmp(buffer, text, expected_len) == 0;
 }
 
+static const char *uart_response_kind_name(ezo_uart_response_kind_t response_kind) {
+  switch (response_kind) {
+    case EZO_UART_RESPONSE_DATA:
+      return "data";
+    case EZO_UART_RESPONSE_OK:
+      return "ok";
+    case EZO_UART_RESPONSE_ERROR:
+      return "error";
+    case EZO_UART_RESPONSE_OVER_VOLTAGE:
+      return "over_voltage";
+    case EZO_UART_RESPONSE_UNDER_VOLTAGE:
+      return "under_voltage";
+    case EZO_UART_RESPONSE_RESET:
+      return "reset";
+    case EZO_UART_RESPONSE_READY:
+      return "ready";
+    case EZO_UART_RESPONSE_SLEEP:
+      return "sleep";
+    case EZO_UART_RESPONSE_WAKE:
+      return "wake";
+    case EZO_UART_RESPONSE_DONE:
+      return "done";
+    default:
+      return "unknown";
+  }
+}
+
 int main(int argc, char **argv) {
   ezo_example_uart_options_t options;
   ezo_example_uart_session_t session;
@@ -107,7 +134,7 @@ int main(int argc, char **argv) {
   printf("response_codes_before_bootstrap=%s\n",
          bootstrap_set_applied ? "disabled" : "enabled");
   printf("bootstrap_set_applied=%d\n", bootstrap_set_applied);
-  printf("terminal_response=%s\n", ezo_example_uart_response_kind_name(terminal_kind));
+  printf("terminal_response=%s\n", uart_response_kind_name(terminal_kind));
   printf("response=%.*s\n", (int)response_len, response);
   return 0;
 }

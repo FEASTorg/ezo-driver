@@ -427,7 +427,6 @@ if(EZO_BUILD_EXAMPLES AND EZO_BUILD_LINUX_ADAPTER)
   add_library(ezo_i2c_linux_example_common STATIC
     examples/linux/common/example_base.c
     examples/linux/common/example_i2c.c
-    examples/linux/common/example_product_i2c.c
   )
 
   target_include_directories(ezo_i2c_linux_example_common
@@ -495,7 +494,6 @@ if(EZO_BUILD_EXAMPLES AND EZO_BUILD_POSIX_UART_ADAPTER AND CMAKE_SYSTEM_NAME STR
   add_library(ezo_uart_linux_example_common STATIC
     examples/linux/common/example_base.c
     examples/linux/common/example_uart.c
-    examples/linux/common/example_product_uart.c
   )
 
   target_include_directories(ezo_uart_linux_example_common

@@ -9,6 +9,7 @@ Next: read ../commissioning/readiness_check.c to inspect calibration state befor
 #include "example_uart.h"
 
 #include "ezo_calibration_transfer.h"
+#include "ezo_product.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -42,6 +43,33 @@ static int parse_product_id(const char *text, ezo_product_id_t *product_id_out) 
     return 1;
   }
   return 0;
+}
+
+static const char *uart_response_kind_name(ezo_uart_response_kind_t response_kind) {
+  switch (response_kind) {
+    case EZO_UART_RESPONSE_DATA:
+      return "data";
+    case EZO_UART_RESPONSE_OK:
+      return "ok";
+    case EZO_UART_RESPONSE_ERROR:
+      return "error";
+    case EZO_UART_RESPONSE_OVER_VOLTAGE:
+      return "over_voltage";
+    case EZO_UART_RESPONSE_UNDER_VOLTAGE:
+      return "under_voltage";
+    case EZO_UART_RESPONSE_RESET:
+      return "reset";
+    case EZO_UART_RESPONSE_READY:
+      return "ready";
+    case EZO_UART_RESPONSE_SLEEP:
+      return "sleep";
+    case EZO_UART_RESPONSE_WAKE:
+      return "wake";
+    case EZO_UART_RESPONSE_DONE:
+      return "done";
+    default:
+      return "unknown";
+  }
 }
 
 int main(int argc, char **argv) {
@@ -113,7 +141,7 @@ int main(int argc, char **argv) {
   }
 
   printf("transport=uart\n");
-  printf("product=%s\n", ezo_example_product_name(product_id));
+  printf("product=%s\n", metadata->vendor_short_code);
   printf("device_path=%s\n", options.device_path);
   printf("baud_rate=%u\n", (unsigned)options.baud_rate);
   printf("export_chunk_count=%u\n", (unsigned)export_info.chunk_count);
@@ -174,7 +202,7 @@ int main(int argc, char **argv) {
       return ezo_example_print_error("import_payload", result);
     }
 
-    printf("import_response_kind=%s\n", ezo_example_uart_response_kind_name(kind));
+    printf("import_response_kind=%s\n", uart_response_kind_name(kind));
   }
 
   ezo_example_close_uart(&session);
