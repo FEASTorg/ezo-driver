@@ -41,7 +41,7 @@ The broad repo read hint of `1000 ms` matches the product summary well enough fo
 
 ## Code Implications
 
-If a typed ORP helper is added later, it can stay small:
+The current typed ORP helper stays small:
 
 - plain read
 - calibration query and control

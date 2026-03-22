@@ -22,7 +22,7 @@ The current baseline is transport-complete for the core library shape:
 - Linux I2C adapter and Linux host POSIX UART adapter
 - curated EZO product and protocol docs under `docs/ezo/`
 
-That baseline is good enough to stop transport reshaping and move into public-surface consolidation, examples, and support-matrix work.
+That baseline is stable enough to treat the transport and initial product architecture as settled.
 
 ## Core conclusion
 
@@ -49,7 +49,7 @@ The library should be universal at the repo level, not by pretending every devic
 
 ## Planned architecture
 
-The next durable layer above the current baseline should look like this:
+The durable library stack should continue to look like this:
 
 1. shared public base layer
 2. shared internal utility layer
@@ -58,8 +58,6 @@ The next durable layer above the current baseline should look like this:
 5. product helper modules
 6. thin C++ convenience wrappers where justified
 7. platform adapters
-
-The key missing foundation is no longer control/admin or the advanced typed product layer. The next missing foundation is public-surface consolidation and support-matrix clarity.
 
 ## What the product layer should provide
 
@@ -90,16 +88,14 @@ This avoids both duplicated product logic and fake universal transport abstracti
 
 ## Rollout order
 
-The typed rollout order is now established:
+The initial rollout order is now established in the shipped surface:
 
 - scalar-output products first: pH, ORP, RTD
 - configurable multi-output products second: EC, DO, HUM
 
-The next milestone is not more basic typed reads or missing control/admin helpers. The next milestone is clearer public packaging and onboarding.
-
 ## Supporting work still needed
 
-The current baseline is still missing:
+The main intentionally deferred surface is:
 
 - a matching UART C++ wrapper only if the C surface justifies it
 

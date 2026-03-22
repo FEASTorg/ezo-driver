@@ -4,6 +4,8 @@ All notable tracked changes to this rewrite will be recorded here.
 
 ## [Unreleased]
 
+## [0.4.0] - current baseline
+
 ### Added
 
 - shared `ezo_control` module for info, name, status, LED, UART response-code mode, sleep, factory reset, protocol lock, and mode-switch helpers
@@ -25,7 +27,7 @@ All notable tracked changes to this rewrite will be recorded here.
 - explicitly deferred the UART C++ wrapper again during Phase 7 public-surface consolidation
 - removed the unused `TRANSPORT_BASELINE` support tier and closed out product-onboarding guidance in tracked docs
 
-## [0.3.0] - current baseline
+## [0.3.0]
 
 ### Added
 

@@ -161,7 +161,7 @@ Validation is split across:
 
 ## Public Surface Guidance
 
-The public starting-point docs for this phase are:
+The public starting-point docs are:
 
 - `docs/public-api-layers.md`
 - `docs/support-matrix.md`

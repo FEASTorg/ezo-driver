@@ -89,12 +89,12 @@ This wrapper remains intentionally thin and only exists for the I2C C surface.
 
 ## UART C++ Decision
 
-The UART C++ wrapper is deferred again.
+The UART C++ wrapper remains deferred.
 
 Reasoning:
 
 - the C UART surface is already explicit and readable
 - there is no matching user need that justifies another maintained wrapper layer yet
-- Phase 7 is about making the current surface legible, not duplicating it
+- the current C UART surface is already explicit and readable
 
 If that changes later, the wrapper should stay as thin as `src/ezo_i2c.hpp` and add no independent protocol logic.
