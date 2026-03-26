@@ -22,3 +22,8 @@ build-*/
 # add unnecessary noise to the repository.
 planning/
 vendor-sheets-internal/
+
+# Python artifacts
+__pycache__/
+*.pyc
+.pytest_cache/
