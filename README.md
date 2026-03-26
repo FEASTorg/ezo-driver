@@ -189,6 +189,7 @@ Primary implementation files:
 - [`docs/architecture.md`](./docs/architecture.md): structure, boundaries, packaging, validation
 - [`docs/api-contract.md`](./docs/api-contract.md): behavioral contract for the public API
 - [`docs/canonical-library-direction.md`](./docs/canonical-library-direction.md): stable long-term direction for the canonical product-aware library
+- [`docs/python-bindings-closeout-next-steps.md`](./docs/python-bindings-closeout-next-steps.md): post-merge closeout checklist for taking Python bindings to full feature parity
 - [`CHANGELOG.md`](./CHANGELOG.md): tracked change history
 
 ## Scope Notes
