@@ -16,6 +16,7 @@ Headers:
 
 - `src/ezo_i2c.h`
 - `src/ezo_uart.h`
+- `src/ezo_linux_device.h` for Linux host lifecycle convenience
 
 Use this layer when you:
 

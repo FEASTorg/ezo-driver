@@ -17,6 +17,7 @@ Inside `src/`:
 - `ezo_i2c.hpp`: thin I2C C++ wrapper
 - `ezo_i2c_arduino_wire.h`, `ezo_i2c_arduino_wire.cpp`: Arduino `TwoWire` I2C adapter
 - `ezo_i2c_linux_i2c.h`: Linux I2C adapter public header
+- `ezo_linux_device.h`: Linux host device facade over the I2C and UART adapters
 - `ezo_orp.h`, `ezo_orp.c`: typed ORP product module
 - `ezo_parse.h`, `ezo_parse.c`: shared query, CSV, and UART-sequence helpers
 - `ezo_ph.h`, `ezo_ph.c`: typed pH product module
@@ -100,7 +101,7 @@ Everything else is supporting material:
 
 10. Platform integrations
    - convert platform APIs into the transport callback contracts
-   - current integrations: Arduino `TwoWire`, Arduino `Stream`, Linux file-descriptor I2C, and Linux host POSIX serial
+   - current integrations: Arduino `TwoWire`, Arduino `Stream`, Linux file-descriptor I2C, Linux host POSIX serial, and a Linux host device facade for binding-friendly lifecycle management
 
 ## Transport Boundary
 
@@ -200,6 +201,7 @@ A new developer should treat these files as the main entry points:
 - `src/ezo_i2c.hpp` for the I2C C++ wrapper
 - `src/ezo_i2c_arduino_wire.h` for Arduino I2C integration
 - `src/ezo_i2c_linux_i2c.h` for Linux I2C integration
+- `src/ezo_linux_device.h` for Linux host device lifecycle
 - `src/ezo_orp.h` for typed ORP helpers
 - `src/ezo_ph.h` for typed pH helpers
 - `src/ezo_product.h` for product IDs, metadata, and device-info parsing

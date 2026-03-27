@@ -27,6 +27,7 @@ set(EZO_PUBLIC_HEADERS
   src/ezo_i2c.hpp
   src/ezo_i2c_arduino_wire.h
   src/ezo_i2c_linux_i2c.h
+  src/ezo_linux_device.h
   src/ezo_orp.h
   src/ezo_parse.h
   src/ezo_ph.h
@@ -350,6 +351,23 @@ if(EZO_BUILD_TESTS)
       NAME ezo_uart_posix_adapter_tests
       COMMAND ezo_uart_posix_adapter_tests
     )
+
+    add_executable(ezo_linux_device_tests
+      tests/test_linux_device.c
+    )
+
+    target_include_directories(ezo_linux_device_tests
+      PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
+
+    target_link_libraries(ezo_linux_device_tests PRIVATE ezo_core ezo_i2c_linux_adapter)
+
+    add_test(
+      NAME ezo_linux_device_tests
+      COMMAND ezo_linux_device_tests
+    )
   endif()
 endif()
 
@@ -379,6 +397,20 @@ if(EZO_BUILD_POSIX_UART_ADAPTER AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
   )
 
   target_link_libraries(ezo_uart_posix_adapter PUBLIC ezo_core)
+endif()
+
+if(EZO_BUILD_LINUX_ADAPTER AND EZO_BUILD_POSIX_UART_ADAPTER AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  add_library(ezo_linux_device_adapter STATIC
+    platform/linux/ezo_linux_device.c
+  )
+
+  target_include_directories(ezo_linux_device_adapter
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  )
+
+  target_link_libraries(ezo_linux_device_adapter PUBLIC ezo_core ezo_i2c_linux_adapter ezo_uart_posix_adapter)
 endif()
 
 if(EZO_BUILD_ARDUINO_ADAPTER)
