@@ -302,11 +302,11 @@ ezo_result_t ezo_read_response(ezo_i2c_device_t *device,
     return EZO_ERR_INVALID_ARGUMENT;
   }
 
-  if (buffer_len > EZO_I2C_MAX_TEXT_RESPONSE_LEN) {
+  if (buffer_len > EZO_I2C_MAX_TEXT_RESPONSE_CAPACITY) {
     return EZO_ERR_INVALID_ARGUMENT;
   }
 
-  frame_len = buffer_len + 1;
+  frame_len = buffer_len;
   memset(frame, 0, frame_len);
   memset(buffer, 0, buffer_len);
   *response_len = 0;

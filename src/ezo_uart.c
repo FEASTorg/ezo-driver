@@ -189,6 +189,7 @@ ezo_result_t ezo_uart_read_line(ezo_uart_device_t *device,
                                 size_t *response_len,
                                 ezo_uart_response_kind_t *response_kind) {
   size_t used = 0;
+  int overflowed = 0;
   ezo_result_t result = EZO_OK;
 
   result = ezo_uart_validate_device(device);
@@ -232,13 +233,22 @@ ezo_result_t ezo_uart_read_line(ezo_uart_device_t *device,
       break;
     }
 
+    if (overflowed) {
+      continue;
+    }
+
     if (used + 1 >= buffer_len) {
-      return EZO_ERR_BUFFER_TOO_SMALL;
+      overflowed = 1;
+      continue;
     }
 
     buffer[used] = (char)byte;
     used += 1;
     buffer[used] = '\0';
+  }
+
+  if (overflowed) {
+    return EZO_ERR_BUFFER_TOO_SMALL;
   }
 
   *response_len = used;

@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <float.h>
+#include <math.h>
 #include <stdint.h>
 
 enum {
@@ -199,6 +200,9 @@ ezo_result_t ezo_common_parse_double(const char *buffer,
   while (i < buffer_len && isdigit((unsigned char)buffer[i])) {
     saw_digit = 1;
     value = (value * 10.0) + (double)(buffer[i] - '0');
+    if (!isfinite(value)) {
+      return EZO_ERR_PARSE;
+    }
     i += 1;
   }
 
@@ -207,6 +211,9 @@ ezo_result_t ezo_common_parse_double(const char *buffer,
     while (i < buffer_len && isdigit((unsigned char)buffer[i])) {
       saw_digit = 1;
       value += (double)(buffer[i] - '0') * fractional_scale;
+      if (!isfinite(value)) {
+        return EZO_ERR_PARSE;
+      }
       fractional_scale *= 0.1;
       i += 1;
     }
@@ -225,6 +232,10 @@ ezo_result_t ezo_common_parse_double(const char *buffer,
 
   if (sign < 0) {
     value = -value;
+  }
+
+  if (!isfinite(value)) {
+    return EZO_ERR_PARSE;
   }
 
   *value_out = value;
