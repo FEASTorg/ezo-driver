@@ -59,7 +59,7 @@ Public guidance docs:
 - `src/`: canonical library root for public headers and Arduino-safe implementation
 - `platform/`: host-only platform implementation code not intended for Arduino library builds
 - `examples/linux/`: full Linux reference example tree with `raw`, `commissioning`, `typed`, and `advanced` flows for I2C and UART
-- `examples/arduino/`: curated Arduino smoke, commissioning, and simple typed sketches
+- `examples/arduino/`: Arduino smoke, commissioning, full typed reads, broad I2C advanced workflows, and focused UART admin/routing sketches
 - `tests/`: host-side tests and fakes
 - `docs/`: tracked handoff docs and curated EZO product/protocol notes
 
@@ -92,7 +92,7 @@ cmake --install build --prefix <install-prefix>
 - host CI builds and runs C and C++ tests for the shared, parse/schema, I2C, UART, and product-foundation paths
 - host CI also runs typed product-module tests for pH, ORP, RTD, EC, DO, and HUM
 - Linux I2C and Linux host POSIX UART adapter behavior are covered by host-side tests
-- PlatformIO CI compile-checks the curated Arduino I2C and UART sketches for `uno`, `nanoatmega328`, and `esp32dev`
+- PlatformIO CI compile-checks the full Arduino sketch surface on `uno` and the UART/helper path on `esp32dev`
 - Arduino IDE validation is manual by design
 
 ## Packaging
@@ -114,9 +114,9 @@ Short version:
 - If you need the bare transport contract first, start with:
   [`examples/linux/i2c/raw/raw_command.c`](./examples/linux/i2c/raw/raw_command.c)
   or [`examples/linux/uart/raw/raw_command.c`](./examples/linux/uart/raw/raw_command.c)
-- If you need Arduino, use the curated sketches under `examples/arduino/`:
-  raw smoke, commissioning inspect, simple pH and D.O. reads for both I2C and UART,
-  plus RTD-driven EC temperature compensation and hardware-topology-specific UART routing.
+- If you need Arduino, use the maintained sketches under `examples/arduino/`:
+  raw smoke and commissioning inspect for both transports, full typed reads for all six products,
+  a broad I2C advanced bench layer, and focused UART admin/routing sketches.
 
 Representative entry points:
 
@@ -152,10 +152,22 @@ Representative entry points:
   and [`examples/linux/uart/advanced/do_full_compensation_chain.c`](./examples/linux/uart/advanced/do_full_compensation_chain.c)
 - Arduino I2C inspect: [`examples/arduino/i2c/commissioning/inspect_device/inspect_device.ino`](./examples/arduino/i2c/commissioning/inspect_device/inspect_device.ino)
 - Arduino UART inspect: [`examples/arduino/uart/commissioning/inspect_device/inspect_device.ino`](./examples/arduino/uart/commissioning/inspect_device/inspect_device.ino)
-- Arduino I2C typed D.O.: [`examples/arduino/i2c/typed/read_do/read_do.ino`](./examples/arduino/i2c/typed/read_do/read_do.ino)
-- Arduino UART typed D.O.: [`examples/arduino/uart/typed/read_do/read_do.ino`](./examples/arduino/uart/typed/read_do/read_do.ino)
+- Arduino I2C typed EC: [`examples/arduino/i2c/typed/read_ec/read_ec.ino`](./examples/arduino/i2c/typed/read_ec/read_ec.ino)
+- Arduino UART typed RTD: [`examples/arduino/uart/typed/read_rtd/read_rtd.ino`](./examples/arduino/uart/typed/read_rtd/read_rtd.ino)
+- Arduino I2C advanced staged pH calibration:
+  [`examples/arduino/i2c/advanced/ph_calibration/ph_calibration.ino`](./examples/arduino/i2c/advanced/ph_calibration/ph_calibration.ino)
+- Arduino I2C advanced EC workflow:
+  [`examples/arduino/i2c/advanced/ec_workflow/ec_workflow.ino`](./examples/arduino/i2c/advanced/ec_workflow/ec_workflow.ino)
+- Arduino I2C advanced shared control workflow:
+  [`examples/arduino/i2c/advanced/control_workflow/control_workflow.ino`](./examples/arduino/i2c/advanced/control_workflow/control_workflow.ino)
+- Arduino UART advanced shared control workflow:
+  [`examples/arduino/uart/advanced/control_workflow/control_workflow.ino`](./examples/arduino/uart/advanced/control_workflow/control_workflow.ino)
+- Arduino I2C advanced calibration transfer:
+  [`examples/arduino/i2c/advanced/calibration_transfer/calibration_transfer.ino`](./examples/arduino/i2c/advanced/calibration_transfer/calibration_transfer.ino)
 - Arduino I2C advanced RTD-driven EC temperature compensation:
   [`examples/arduino/i2c/advanced/ec_temp_comp_from_rtd/ec_temp_comp_from_rtd.ino`](./examples/arduino/i2c/advanced/ec_temp_comp_from_rtd/ec_temp_comp_from_rtd.ino)
+- Arduino I2C advanced full D.O. compensation chain:
+  [`examples/arduino/i2c/advanced/do_full_compensation_chain/do_full_compensation_chain.ino`](./examples/arduino/i2c/advanced/do_full_compensation_chain/do_full_compensation_chain.ino)
 - Arduino UART advanced multi-device routing:
   [`examples/arduino/uart/advanced/multi_device_router/multi_device_router.ino`](./examples/arduino/uart/advanced/multi_device_router/multi_device_router.ino)
 

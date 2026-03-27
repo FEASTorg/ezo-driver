@@ -1,0 +1,135 @@
+/*
+Purpose: inspect D.O. output selection, temperature/salinity/pressure compensation, calibration state, and current reading.
+Defaults: Wire on the board default pins, address 97, temperature 25.0 C, salinity 0.0 ppt, and pressure 101.325 kPa.
+Assumptions: the device is a D.O. circuit already in I2C mode.
+Next: read ../do_calibration/do_calibration.ino for staged low/high calibration.
+*/
+
+#include "../../../common/ezo_arduino_i2c_example.hpp"
+
+#include <ezo_do.h>
+
+static const unsigned long STARTUP_SETTLE_MS = 3000UL;
+static const uint8_t DEVICE_I2C_ADDRESS = 97U;
+static const uint8_t APPLY_CHANGES = 0U;
+static const uint8_t ENABLE_PERCENT_OUTPUT = 1U;
+static const float PLANNED_TEMPERATURE_C = 25.0f;
+static const float PLANNED_SALINITY_VALUE = 0.0f;
+static const ezo_do_salinity_unit_t PLANNED_SALINITY_UNIT = EZO_DO_SALINITY_UNIT_PPT;
+static const float PLANNED_PRESSURE_KPA = 101.325f;
+static const uint8_t RUN_ONE_SHOT_TEMP_COMP_READ = 1U;
+
+static ezo_arduino_wire_context_t wire_context;
+static ezo_i2c_device_t device;
+static unsigned long startup_started_at_ms = 0;
+static uint8_t workflow_done = 0U;
+
+static void run_workflow() {
+  ezo_timing_hint_t hint;
+  ezo_do_output_config_t output_config;
+  ezo_do_temperature_compensation_t temperature;
+  ezo_do_salinity_compensation_t salinity;
+  ezo_do_pressure_compensation_t pressure;
+  ezo_do_calibration_status_t calibration;
+  ezo_do_reading_t reading;
+
+  EZO_ARDUINO_CHECK_OK("send_output_query", ezo_do_send_output_query_i2c(&device, &hint));
+  ezo_arduino_wait_hint(&hint);
+  EZO_ARDUINO_CHECK_OK("read_output_query", ezo_do_read_output_config_i2c(&device, &output_config));
+
+  EZO_ARDUINO_CHECK_OK("send_temperature_query",
+                       ezo_do_send_temperature_query_i2c(&device, &hint));
+  ezo_arduino_wait_hint(&hint);
+  EZO_ARDUINO_CHECK_OK("read_temperature_query",
+                       ezo_do_read_temperature_i2c(&device, &temperature));
+
+  EZO_ARDUINO_CHECK_OK("send_salinity_query", ezo_do_send_salinity_query_i2c(&device, &hint));
+  ezo_arduino_wait_hint(&hint);
+  EZO_ARDUINO_CHECK_OK("read_salinity_query", ezo_do_read_salinity_i2c(&device, &salinity));
+
+  EZO_ARDUINO_CHECK_OK("send_pressure_query", ezo_do_send_pressure_query_i2c(&device, &hint));
+  ezo_arduino_wait_hint(&hint);
+  EZO_ARDUINO_CHECK_OK("read_pressure_query", ezo_do_read_pressure_i2c(&device, &pressure));
+
+  EZO_ARDUINO_CHECK_OK("send_calibration_query",
+                       ezo_do_send_calibration_query_i2c(&device, &hint));
+  ezo_arduino_wait_hint(&hint);
+  EZO_ARDUINO_CHECK_OK("read_calibration_query",
+                       ezo_do_read_calibration_status_i2c(&device, &calibration));
+
+  EZO_ARDUINO_CHECK_OK("send_read", ezo_do_send_read_i2c(&device, &hint));
+  ezo_arduino_wait_hint(&hint);
+  EZO_ARDUINO_CHECK_OK("read_response",
+                       ezo_do_read_response_i2c(&device, output_config.enabled_mask, &reading));
+
+  Serial.println(F("transport=i2c"));
+  Serial.print(F("address="));
+  Serial.println(DEVICE_I2C_ADDRESS);
+  Serial.print(F("current_output_mask="));
+  Serial.println((unsigned long)output_config.enabled_mask);
+  Serial.print(F("current_temperature_compensation_c="));
+  Serial.println(temperature.temperature_c, 3);
+  Serial.print(F("current_salinity_value="));
+  Serial.println(salinity.value, 3);
+  Serial.print(F("current_salinity_unit="));
+  Serial.println(ezo_arduino_do_salinity_unit_name(salinity.unit));
+  Serial.print(F("current_pressure_kpa="));
+  Serial.println(pressure.pressure_kpa, 3);
+  Serial.print(F("current_calibration_level="));
+  Serial.println((unsigned long)calibration.level);
+  ezo_arduino_print_do_reading(F("current_"), &reading);
+  Serial.print(F("apply_changes="));
+  Serial.println((unsigned)APPLY_CHANGES);
+
+  if (RUN_ONE_SHOT_TEMP_COMP_READ != 0U) {
+    EZO_ARDUINO_CHECK_OK("send_read_with_temp_comp",
+                         ezo_do_send_read_with_temp_comp_i2c(
+                             &device, PLANNED_TEMPERATURE_C, 2U, &hint));
+    ezo_arduino_wait_hint(&hint);
+    EZO_ARDUINO_CHECK_OK("read_response_with_temp_comp",
+                         ezo_do_read_response_i2c(&device, output_config.enabled_mask, &reading));
+    ezo_arduino_print_do_reading(F("one_shot_"), &reading);
+  }
+
+  if (APPLY_CHANGES == 0U) {
+    return;
+  }
+
+  EZO_ARDUINO_CHECK_OK("send_output_set",
+                       ezo_do_send_output_set_i2c(
+                           &device, EZO_DO_OUTPUT_PERCENT_SATURATION, ENABLE_PERCENT_OUTPUT, &hint));
+  ezo_arduino_wait_hint(&hint);
+  EZO_ARDUINO_CHECK_OK("send_temperature_set",
+                       ezo_do_send_temperature_set_i2c(
+                           &device, PLANNED_TEMPERATURE_C, 2U, &hint));
+  ezo_arduino_wait_hint(&hint);
+  EZO_ARDUINO_CHECK_OK("send_salinity_set",
+                       ezo_do_send_salinity_set_i2c(
+                           &device, PLANNED_SALINITY_VALUE, PLANNED_SALINITY_UNIT, 2U, &hint));
+  ezo_arduino_wait_hint(&hint);
+  EZO_ARDUINO_CHECK_OK("send_pressure_set",
+                       ezo_do_send_pressure_set_i2c(
+                           &device, PLANNED_PRESSURE_KPA, 2U, &hint));
+  ezo_arduino_wait_hint(&hint);
+}
+
+void setup() {
+  ezo_arduino_i2c_begin();
+  EZO_ARDUINO_CHECK_OK("init_wire_context", ezo_arduino_i2c_init_context(&wire_context));
+  EZO_ARDUINO_CHECK_OK("init_device",
+                       ezo_arduino_i2c_init_device(&device, DEVICE_I2C_ADDRESS, &wire_context));
+  startup_started_at_ms = millis();
+}
+
+void loop() {
+  if (workflow_done != 0U) {
+    return;
+  }
+
+  if (!ezo_arduino_startup_elapsed(startup_started_at_ms, STARTUP_SETTLE_MS)) {
+    return;
+  }
+
+  run_workflow();
+  workflow_done = 1U;
+}

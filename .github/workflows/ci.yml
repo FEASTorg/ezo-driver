@@ -40,9 +40,53 @@ jobs:
           - board: uno
             sketch: examples/arduino/i2c/typed/read_ph/read_ph.ino
           - board: uno
+            sketch: examples/arduino/i2c/typed/read_orp/read_orp.ino
+          - board: uno
+            sketch: examples/arduino/i2c/typed/read_ec/read_ec.ino
+          - board: uno
             sketch: examples/arduino/i2c/typed/read_do/read_do.ino
           - board: uno
+            sketch: examples/arduino/i2c/typed/read_rtd/read_rtd.ino
+          - board: uno
+            sketch: examples/arduino/i2c/typed/read_hum/read_hum.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/ph_calibration/ph_calibration.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/orp_calibration/orp_calibration.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/ec_calibration/ec_calibration.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/do_calibration/do_calibration.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/rtd_calibration/rtd_calibration.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/hum_temperature_calibration/hum_temperature_calibration.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/ph_workflow/ph_workflow.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/orp_workflow/orp_workflow.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/ec_workflow/ec_workflow.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/do_workflow/do_workflow.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/rtd_workflow/rtd_workflow.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/hum_workflow/hum_workflow.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/calibration_transfer/calibration_transfer.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/control_workflow/control_workflow.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/transport_switch/transport_switch.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/ph_temp_comp_from_rtd/ph_temp_comp_from_rtd.ino
+          - board: uno
             sketch: examples/arduino/i2c/advanced/ec_temp_comp_from_rtd/ec_temp_comp_from_rtd.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/do_salinity_comp_from_ec/do_salinity_comp_from_ec.ino
+          - board: uno
+            sketch: examples/arduino/i2c/advanced/do_full_compensation_chain/do_full_compensation_chain.ino
           - board: uno
             sketch: examples/arduino/uart/raw/smoke/smoke.ino
           - board: uno
@@ -50,39 +94,23 @@ jobs:
           - board: uno
             sketch: examples/arduino/uart/typed/read_ph/read_ph.ino
           - board: uno
+            sketch: examples/arduino/uart/typed/read_orp/read_orp.ino
+          - board: uno
+            sketch: examples/arduino/uart/typed/read_ec/read_ec.ino
+          - board: uno
             sketch: examples/arduino/uart/typed/read_do/read_do.ino
+          - board: uno
+            sketch: examples/arduino/uart/typed/read_rtd/read_rtd.ino
+          - board: uno
+            sketch: examples/arduino/uart/typed/read_hum/read_hum.ino
+          - board: uno
+            sketch: examples/arduino/uart/advanced/control_workflow/control_workflow.ino
+          - board: uno
+            sketch: examples/arduino/uart/advanced/transport_switch/transport_switch.ino
+          - board: uno
+            sketch: examples/arduino/uart/advanced/calibration_transfer/calibration_transfer.ino
           - board: uno
             sketch: examples/arduino/uart/advanced/multi_device_router/multi_device_router.ino
-          - board: nanoatmega328
-            sketch: examples/arduino/i2c/raw/smoke/smoke.ino
-          - board: nanoatmega328
-            sketch: examples/arduino/i2c/commissioning/inspect_device/inspect_device.ino
-          - board: nanoatmega328
-            sketch: examples/arduino/i2c/typed/read_ph/read_ph.ino
-          - board: nanoatmega328
-            sketch: examples/arduino/i2c/typed/read_do/read_do.ino
-          - board: nanoatmega328
-            sketch: examples/arduino/i2c/advanced/ec_temp_comp_from_rtd/ec_temp_comp_from_rtd.ino
-          - board: nanoatmega328
-            sketch: examples/arduino/uart/raw/smoke/smoke.ino
-          - board: nanoatmega328
-            sketch: examples/arduino/uart/commissioning/inspect_device/inspect_device.ino
-          - board: nanoatmega328
-            sketch: examples/arduino/uart/typed/read_ph/read_ph.ino
-          - board: nanoatmega328
-            sketch: examples/arduino/uart/typed/read_do/read_do.ino
-          - board: nanoatmega328
-            sketch: examples/arduino/uart/advanced/multi_device_router/multi_device_router.ino
-          - board: esp32dev
-            sketch: examples/arduino/i2c/raw/smoke/smoke.ino
-          - board: esp32dev
-            sketch: examples/arduino/i2c/commissioning/inspect_device/inspect_device.ino
-          - board: esp32dev
-            sketch: examples/arduino/i2c/typed/read_ph/read_ph.ino
-          - board: esp32dev
-            sketch: examples/arduino/i2c/typed/read_do/read_do.ino
-          - board: esp32dev
-            sketch: examples/arduino/i2c/advanced/ec_temp_comp_from_rtd/ec_temp_comp_from_rtd.ino
           - board: esp32dev
             sketch: examples/arduino/uart/raw/smoke/smoke.ino
           - board: esp32dev
@@ -90,7 +118,21 @@ jobs:
           - board: esp32dev
             sketch: examples/arduino/uart/typed/read_ph/read_ph.ino
           - board: esp32dev
+            sketch: examples/arduino/uart/typed/read_orp/read_orp.ino
+          - board: esp32dev
+            sketch: examples/arduino/uart/typed/read_ec/read_ec.ino
+          - board: esp32dev
             sketch: examples/arduino/uart/typed/read_do/read_do.ino
+          - board: esp32dev
+            sketch: examples/arduino/uart/typed/read_rtd/read_rtd.ino
+          - board: esp32dev
+            sketch: examples/arduino/uart/typed/read_hum/read_hum.ino
+          - board: esp32dev
+            sketch: examples/arduino/uart/advanced/control_workflow/control_workflow.ino
+          - board: esp32dev
+            sketch: examples/arduino/uart/advanced/transport_switch/transport_switch.ino
+          - board: esp32dev
+            sketch: examples/arduino/uart/advanced/calibration_transfer/calibration_transfer.ino
           - board: esp32dev
             sketch: examples/arduino/uart/advanced/multi_device_router/multi_device_router.ino
 

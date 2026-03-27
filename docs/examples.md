@@ -38,19 +38,21 @@ Use this page as the chooser.
 - `examples/linux/uart/commissioning/`: UART bootstrap, identity, and readiness checks
 - `examples/linux/uart/typed/`: one simple typed read per supported product with explicit response-code bootstrap
 - `examples/linux/uart/advanced/`: safe-by-default UART workflows
-- `examples/arduino/i2c/advanced/`: curated hardware-facing I2C compensation sketch
-- `examples/arduino/uart/advanced/`: curated hardware-topology-specific UART routing sketch
-- `examples/arduino/i2c/`: curated I2C smoke, inspect, pH read, and D.O. read sketches
-- `examples/arduino/uart/`: curated UART smoke, inspect, pH read, and D.O. read sketches
+- `examples/arduino/common/`: shared Arduino helper headers used by the maintained sketches
+- `examples/arduino/i2c/advanced/`: broad bench-oriented Arduino I2C workflows, calibration, control, and compensation sketches
+- `examples/arduino/uart/advanced/`: focused Arduino UART admin, transport-switch, calibration-transfer, and routed-topology sketches
+- `examples/arduino/i2c/`: Arduino I2C smoke, inspect, typed, and advanced sketches
+- `examples/arduino/uart/`: Arduino UART smoke, inspect, typed, and focused advanced sketches
 
 ## Safety Model
 
-- Advanced examples inspect first and only apply changes when `--apply` is present.
-- Advanced calibration examples use explicit `--step=` staging and bounded preview loops instead of open-ended polling or shells.
-- Calibration-transfer examples never import anything unless `--apply` and `--payload=...` are both present.
+- Linux advanced examples inspect first and only apply changes when `--apply` is present.
+- Linux advanced calibration examples use explicit `--step=` staging and bounded preview loops instead of open-ended polling or shells.
+- Linux calibration-transfer examples never import anything unless `--apply` and `--payload=...` are both present.
 - UART typed and advanced examples explicitly bootstrap response-code mode before assuming `DATA + *OK` success sequences.
 - Raw examples stay close to the transport layer and do not hide line ownership or synchronization.
 - Arduino advanced sketches stay explicit and hardware-facing; they do not reintroduce sequencer, shell, or scheduler abstractions.
+- Arduino mutation paths are controlled by top-of-file constants such as `APPLY_CHANGES` or `APPLY_IMPORT` instead of runtime shells or command parsers.
 
 ## Linux Reference Matrix
 
@@ -135,20 +137,63 @@ Use this page as the chooser.
 - UART control workflow: [`examples/linux/uart/advanced/control_workflow.c`](../examples/linux/uart/advanced/control_workflow.c)
 - UART transport switch: [`examples/linux/uart/advanced/transport_switch.c`](../examples/linux/uart/advanced/transport_switch.c)
 
-## Arduino Curated Matrix
+## Arduino Matrix
+
+### Raw
 
 - I2C raw smoke: [`examples/arduino/i2c/raw/smoke/smoke.ino`](../examples/arduino/i2c/raw/smoke/smoke.ino)
-- I2C inspect device: [`examples/arduino/i2c/commissioning/inspect_device/inspect_device.ino`](../examples/arduino/i2c/commissioning/inspect_device/inspect_device.ino)
-- I2C typed pH read: [`examples/arduino/i2c/typed/read_ph/read_ph.ino`](../examples/arduino/i2c/typed/read_ph/read_ph.ino)
-- I2C typed D.O. read: [`examples/arduino/i2c/typed/read_do/read_do.ino`](../examples/arduino/i2c/typed/read_do/read_do.ino)
-- I2C advanced EC temp compensation from RTD: [`examples/arduino/i2c/advanced/ec_temp_comp_from_rtd/ec_temp_comp_from_rtd.ino`](../examples/arduino/i2c/advanced/ec_temp_comp_from_rtd/ec_temp_comp_from_rtd.ino)
 - UART raw smoke: [`examples/arduino/uart/raw/smoke/smoke.ino`](../examples/arduino/uart/raw/smoke/smoke.ino)
-- UART inspect device: [`examples/arduino/uart/commissioning/inspect_device/inspect_device.ino`](../examples/arduino/uart/commissioning/inspect_device/inspect_device.ino)
-- UART typed pH read: [`examples/arduino/uart/typed/read_ph/read_ph.ino`](../examples/arduino/uart/typed/read_ph/read_ph.ino)
-- UART typed D.O. read: [`examples/arduino/uart/typed/read_do/read_do.ino`](../examples/arduino/uart/typed/read_do/read_do.ino)
-- UART advanced multi-device router: [`examples/arduino/uart/advanced/multi_device_router/multi_device_router.ino`](../examples/arduino/uart/advanced/multi_device_router/multi_device_router.ino)
 
-Linux is the full reference surface. Arduino stays intentionally smaller: smoke, inspect, simple typed reads, one cross-device I2C compensation sketch, and one hardware-topology-specific UART routing sketch.
+### Commissioning
+
+- I2C inspect device: [`examples/arduino/i2c/commissioning/inspect_device/inspect_device.ino`](../examples/arduino/i2c/commissioning/inspect_device/inspect_device.ino)
+- UART inspect device: [`examples/arduino/uart/commissioning/inspect_device/inspect_device.ino`](../examples/arduino/uart/commissioning/inspect_device/inspect_device.ino)
+
+### Typed Reads
+
+- I2C pH: [`examples/arduino/i2c/typed/read_ph/read_ph.ino`](../examples/arduino/i2c/typed/read_ph/read_ph.ino)
+- I2C ORP: [`examples/arduino/i2c/typed/read_orp/read_orp.ino`](../examples/arduino/i2c/typed/read_orp/read_orp.ino)
+- I2C EC: [`examples/arduino/i2c/typed/read_ec/read_ec.ino`](../examples/arduino/i2c/typed/read_ec/read_ec.ino)
+- I2C D.O.: [`examples/arduino/i2c/typed/read_do/read_do.ino`](../examples/arduino/i2c/typed/read_do/read_do.ino)
+- I2C RTD: [`examples/arduino/i2c/typed/read_rtd/read_rtd.ino`](../examples/arduino/i2c/typed/read_rtd/read_rtd.ino)
+- I2C HUM: [`examples/arduino/i2c/typed/read_hum/read_hum.ino`](../examples/arduino/i2c/typed/read_hum/read_hum.ino)
+- UART pH: [`examples/arduino/uart/typed/read_ph/read_ph.ino`](../examples/arduino/uart/typed/read_ph/read_ph.ino)
+- UART ORP: [`examples/arduino/uart/typed/read_orp/read_orp.ino`](../examples/arduino/uart/typed/read_orp/read_orp.ino)
+- UART EC: [`examples/arduino/uart/typed/read_ec/read_ec.ino`](../examples/arduino/uart/typed/read_ec/read_ec.ino)
+- UART D.O.: [`examples/arduino/uart/typed/read_do/read_do.ino`](../examples/arduino/uart/typed/read_do/read_do.ino)
+- UART RTD: [`examples/arduino/uart/typed/read_rtd/read_rtd.ino`](../examples/arduino/uart/typed/read_rtd/read_rtd.ino)
+- UART HUM: [`examples/arduino/uart/typed/read_hum/read_hum.ino`](../examples/arduino/uart/typed/read_hum/read_hum.ino)
+
+### Advanced I2C
+
+- I2C pH calibration: [`examples/arduino/i2c/advanced/ph_calibration/ph_calibration.ino`](../examples/arduino/i2c/advanced/ph_calibration/ph_calibration.ino)
+- I2C ORP calibration: [`examples/arduino/i2c/advanced/orp_calibration/orp_calibration.ino`](../examples/arduino/i2c/advanced/orp_calibration/orp_calibration.ino)
+- I2C EC calibration: [`examples/arduino/i2c/advanced/ec_calibration/ec_calibration.ino`](../examples/arduino/i2c/advanced/ec_calibration/ec_calibration.ino)
+- I2C D.O. calibration: [`examples/arduino/i2c/advanced/do_calibration/do_calibration.ino`](../examples/arduino/i2c/advanced/do_calibration/do_calibration.ino)
+- I2C RTD calibration: [`examples/arduino/i2c/advanced/rtd_calibration/rtd_calibration.ino`](../examples/arduino/i2c/advanced/rtd_calibration/rtd_calibration.ino)
+- I2C HUM temperature calibration: [`examples/arduino/i2c/advanced/hum_temperature_calibration/hum_temperature_calibration.ino`](../examples/arduino/i2c/advanced/hum_temperature_calibration/hum_temperature_calibration.ino)
+- I2C pH workflow: [`examples/arduino/i2c/advanced/ph_workflow/ph_workflow.ino`](../examples/arduino/i2c/advanced/ph_workflow/ph_workflow.ino)
+- I2C ORP workflow: [`examples/arduino/i2c/advanced/orp_workflow/orp_workflow.ino`](../examples/arduino/i2c/advanced/orp_workflow/orp_workflow.ino)
+- I2C EC workflow: [`examples/arduino/i2c/advanced/ec_workflow/ec_workflow.ino`](../examples/arduino/i2c/advanced/ec_workflow/ec_workflow.ino)
+- I2C D.O. workflow: [`examples/arduino/i2c/advanced/do_workflow/do_workflow.ino`](../examples/arduino/i2c/advanced/do_workflow/do_workflow.ino)
+- I2C RTD workflow: [`examples/arduino/i2c/advanced/rtd_workflow/rtd_workflow.ino`](../examples/arduino/i2c/advanced/rtd_workflow/rtd_workflow.ino)
+- I2C HUM workflow: [`examples/arduino/i2c/advanced/hum_workflow/hum_workflow.ino`](../examples/arduino/i2c/advanced/hum_workflow/hum_workflow.ino)
+- I2C calibration transfer: [`examples/arduino/i2c/advanced/calibration_transfer/calibration_transfer.ino`](../examples/arduino/i2c/advanced/calibration_transfer/calibration_transfer.ino)
+- I2C control workflow: [`examples/arduino/i2c/advanced/control_workflow/control_workflow.ino`](../examples/arduino/i2c/advanced/control_workflow/control_workflow.ino)
+- I2C transport switch: [`examples/arduino/i2c/advanced/transport_switch/transport_switch.ino`](../examples/arduino/i2c/advanced/transport_switch/transport_switch.ino)
+- I2C RTD -> pH temperature compensation: [`examples/arduino/i2c/advanced/ph_temp_comp_from_rtd/ph_temp_comp_from_rtd.ino`](../examples/arduino/i2c/advanced/ph_temp_comp_from_rtd/ph_temp_comp_from_rtd.ino)
+- I2C RTD -> EC temperature compensation: [`examples/arduino/i2c/advanced/ec_temp_comp_from_rtd/ec_temp_comp_from_rtd.ino`](../examples/arduino/i2c/advanced/ec_temp_comp_from_rtd/ec_temp_comp_from_rtd.ino)
+- I2C EC -> D.O. salinity compensation: [`examples/arduino/i2c/advanced/do_salinity_comp_from_ec/do_salinity_comp_from_ec.ino`](../examples/arduino/i2c/advanced/do_salinity_comp_from_ec/do_salinity_comp_from_ec.ino)
+- I2C full D.O. compensation chain: [`examples/arduino/i2c/advanced/do_full_compensation_chain/do_full_compensation_chain.ino`](../examples/arduino/i2c/advanced/do_full_compensation_chain/do_full_compensation_chain.ino)
+
+### Advanced UART
+
+- UART control workflow: [`examples/arduino/uart/advanced/control_workflow/control_workflow.ino`](../examples/arduino/uart/advanced/control_workflow/control_workflow.ino)
+- UART transport switch: [`examples/arduino/uart/advanced/transport_switch/transport_switch.ino`](../examples/arduino/uart/advanced/transport_switch/transport_switch.ino)
+- UART calibration transfer: [`examples/arduino/uart/advanced/calibration_transfer/calibration_transfer.ino`](../examples/arduino/uart/advanced/calibration_transfer/calibration_transfer.ino)
+- UART multi-device router: [`examples/arduino/uart/advanced/multi_device_router/multi_device_router.ino`](../examples/arduino/uart/advanced/multi_device_router/multi_device_router.ino)
+
+Linux remains the full reference surface. Arduino is now broad and practical without mirroring every Linux advanced transport permutation: full raw/commissioning/typed coverage, a broad I2C bench-workflow layer, and a focused UART admin/routing layer.
 
 ## Legacy Mapping
 
