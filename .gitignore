@@ -27,9 +27,14 @@ vendor-sheets-internal/
 __pycache__/
 *.pyc
 .pytest_cache/
+*.egg-info/
 
 .venv
 .venv*
+
+# Python extension build artifacts
+bindings/python/src/ezo_driver/_native*.so
+bindings/python/src/ezo_driver/_native*.pyd
 
 # Log files
 *.log

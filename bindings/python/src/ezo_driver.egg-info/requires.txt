@@ -1,4 +1,0 @@
-cffi>=1.16
-
-[test]
-pytest>=7

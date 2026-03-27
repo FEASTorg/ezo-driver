@@ -9,6 +9,7 @@ Cross-platform Atlas Scientific EZO driver with:
 - Arduino `Stream` integration for UART
 - Linux I2C support
 - Linux host POSIX UART support
+- Linux Python bindings
 - host-side tests and Arduino compile CI
 
 ## Status
@@ -27,6 +28,7 @@ Current implementation includes:
 - Arduino integrations for both I2C and UART
 - Linux I2C integration
 - Linux host POSIX UART integration
+- Linux Python bindings with editable-install CI coverage
 - focused Arduino and Linux examples
 - host-side C and C++ tests plus fake transport coverage
 - PlatformIO Arduino compile validation in CI
@@ -35,6 +37,7 @@ Current support matrix:
 
 - I2C: C core, I2C C++ wrapper, Arduino `TwoWire`, Linux I2C adapter
 - UART: C core, Arduino `Stream`, Linux host POSIX serial adapter
+- Python: Linux-only bindings with editable-install and pytest coverage
 - Product modules: full typed support for the initial six families, including shared control/admin coverage, calibration-transfer primitives, and advanced per-product helpers
 - Product foundation: identity, metadata, timing fallback, and parse/schema utilities for the initial six documented families
 - Shared: host-side tests and Arduino compile validation
@@ -60,6 +63,7 @@ Public guidance docs:
 - `platform/`: host-only platform implementation code not intended for Arduino library builds
 - `examples/linux/`: full Linux reference example tree with `raw`, `commissioning`, `typed`, and `advanced` flows for I2C and UART
 - `examples/arduino/`: Arduino smoke, commissioning, full typed reads, broad I2C advanced workflows, and focused UART admin/routing sketches
+- `bindings/python/`: Linux-only Python bindings package and tests
 - `tests/`: host-side tests and fakes
 - `docs/`: tracked handoff docs and curated EZO product/protocol notes
 
@@ -93,6 +97,7 @@ cmake --install build --prefix <install-prefix>
 - host CI also runs typed product-module tests for pH, ORP, RTD, EC, DO, and HUM
 - Linux I2C and Linux host POSIX UART adapter behavior are covered by host-side tests
 - PlatformIO CI compile-checks the full Arduino sketch surface on `uno` and the UART/helper path on `esp32dev`
+- Python CI installs `bindings/python` in editable mode and runs the Linux bindings pytest suite
 - Arduino IDE validation is manual by design
 
 ## Packaging

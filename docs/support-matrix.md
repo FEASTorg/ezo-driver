@@ -53,6 +53,7 @@ Future family onboarding follows [`docs/product-onboarding.md`](./product-onboar
 | Arduino `Stream` adapter | supported | compile-validated in CI |
 | Linux I2C adapter | supported | host build/test path |
 | Linux POSIX UART adapter | supported | host build/test path |
+| Linux Python bindings | supported | editable install from the repo checkout, Linux-only, pytest-validated in CI |
 
 ## Important Non-Goals
 
