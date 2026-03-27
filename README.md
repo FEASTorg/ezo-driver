@@ -126,15 +126,30 @@ Representative entry points:
 - Linux UART commissioning: [`examples/linux/uart/commissioning/inspect_device.c`](./examples/linux/uart/commissioning/inspect_device.c)
 - Linux I2C typed pH: [`examples/linux/i2c/typed/read_ph.c`](./examples/linux/i2c/typed/read_ph.c)
 - Linux UART typed pH: [`examples/linux/uart/typed/read_ph.c`](./examples/linux/uart/typed/read_ph.c)
+- Linux advanced staged pH calibration:
+  [`examples/linux/i2c/advanced/ph_calibration.c`](./examples/linux/i2c/advanced/ph_calibration.c)
+  and [`examples/linux/uart/advanced/ph_calibration.c`](./examples/linux/uart/advanced/ph_calibration.c)
+- Linux advanced EC workflow:
+  [`examples/linux/i2c/advanced/ec_workflow.c`](./examples/linux/i2c/advanced/ec_workflow.c)
+  and [`examples/linux/uart/advanced/ec_workflow.c`](./examples/linux/uart/advanced/ec_workflow.c)
 - Linux advanced calibration transfer:
   [`examples/linux/i2c/advanced/calibration_transfer.c`](./examples/linux/i2c/advanced/calibration_transfer.c)
   and [`examples/linux/uart/advanced/calibration_transfer.c`](./examples/linux/uart/advanced/calibration_transfer.c)
+- Linux advanced shared control workflow:
+  [`examples/linux/i2c/advanced/control_workflow.c`](./examples/linux/i2c/advanced/control_workflow.c)
+  and [`examples/linux/uart/advanced/control_workflow.c`](./examples/linux/uart/advanced/control_workflow.c)
+- Linux advanced transport switch:
+  [`examples/linux/i2c/advanced/transport_switch.c`](./examples/linux/i2c/advanced/transport_switch.c)
+  and [`examples/linux/uart/advanced/transport_switch.c`](./examples/linux/uart/advanced/transport_switch.c)
 - Linux advanced RTD-driven EC temperature compensation:
   [`examples/linux/i2c/advanced/ec_temp_comp_from_rtd.c`](./examples/linux/i2c/advanced/ec_temp_comp_from_rtd.c)
   and [`examples/linux/uart/advanced/ec_temp_comp_from_rtd.c`](./examples/linux/uart/advanced/ec_temp_comp_from_rtd.c)
 - Linux advanced EC-driven D.O. salinity compensation:
   [`examples/linux/i2c/advanced/do_salinity_comp_from_ec.c`](./examples/linux/i2c/advanced/do_salinity_comp_from_ec.c)
   and [`examples/linux/uart/advanced/do_salinity_comp_from_ec.c`](./examples/linux/uart/advanced/do_salinity_comp_from_ec.c)
+- Linux advanced full D.O. compensation chain:
+  [`examples/linux/i2c/advanced/do_full_compensation_chain.c`](./examples/linux/i2c/advanced/do_full_compensation_chain.c)
+  and [`examples/linux/uart/advanced/do_full_compensation_chain.c`](./examples/linux/uart/advanced/do_full_compensation_chain.c)
 - Arduino I2C inspect: [`examples/arduino/i2c/commissioning/inspect_device/inspect_device.ino`](./examples/arduino/i2c/commissioning/inspect_device/inspect_device.ino)
 - Arduino UART inspect: [`examples/arduino/uart/commissioning/inspect_device/inspect_device.ino`](./examples/arduino/uart/commissioning/inspect_device/inspect_device.ino)
 - Arduino I2C typed D.O.: [`examples/arduino/i2c/typed/read_do/read_do.ino`](./examples/arduino/i2c/typed/read_do/read_do.ino)

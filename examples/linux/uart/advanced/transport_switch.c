@@ -50,6 +50,7 @@ int main(int argc, char **argv) {
   switch_target_t target = TARGET_I2C;
   uint8_t target_address = 99U;
   uint32_t target_baud = EZO_EXAMPLE_UART_DEFAULT_BAUD_RATE;
+  int address_specified = 0;
   ezo_example_uart_options_t options;
   ezo_example_uart_session_t session;
   ezo_device_info_t info;
@@ -86,9 +87,12 @@ int main(int argc, char **argv) {
   }
 
   value = ezo_example_find_option_value(argc, argv, next_arg, "--address=");
-  if (value != NULL && !ezo_example_parse_uint8_arg(value, &target_address)) {
-    fprintf(stderr, "invalid --address value\n");
-    return 1;
+  if (value != NULL) {
+    if (!ezo_example_parse_uint8_arg(value, &target_address)) {
+      fprintf(stderr, "invalid --address value\n");
+      return 1;
+    }
+    address_specified = 1;
   }
 
   value = ezo_example_find_option_value(argc, argv, next_arg, "--baud=");
@@ -111,7 +115,7 @@ int main(int argc, char **argv) {
   }
   if (result == EZO_OK) {
     metadata = ezo_product_get_metadata(info.product_id);
-    if (value == NULL && metadata != NULL && metadata->default_i2c_address != 0U) {
+    if (!address_specified && metadata != NULL && metadata->default_i2c_address != 0U) {
       target_address = metadata->default_i2c_address;
     }
   }
