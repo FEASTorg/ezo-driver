@@ -52,6 +52,82 @@ The documented output-config query reply uses the alternate vendor form `?,O,...
 
 The atmospheric-pressure query is another vendor oddball: the documented reply uses `?,P,...`. That shape differs from the simpler `?T,...` and `?S,...` query families, so the DO helper treats it as product-specific parsing instead of relying on the generic shared query helper.
 
+## Calibration Procedure
+
+### Calibration Model
+
+DO supports:
+
+- a high-point atmospheric calibration with `Cal`
+- an optional low-point zero-oxygen calibration with `Cal,0`
+
+The command surface is:
+
+- `Cal`
+- `Cal,0`
+- `Cal,clear`
+- `Cal,?`
+
+`Cal,?` reports:
+
+- `?Cal,0` = not calibrated
+- `?Cal,1` = atmospheric point only
+- `?Cal,2` = low point plus atmospheric point
+
+Plan on about `1300 ms` for `Cal` and `Cal,0`, and about `300 ms` for `Cal,clear` and `Cal,?`.
+
+### Before You Begin
+
+- Verify the probe basically works before calibrating. Vendor guidance is to read in air first; readings above `10 mg/L` are treated as a healthy starting point, while readings below `5 mg/L` point to a probe issue that should be fixed first.
+- Reset compensation to the default calibration values before you calibrate:
+  - temperature `20 C`
+  - atmospheric pressure `101 kPa`
+  - salinity `0`
+- Do not apply temperature, pressure, or salinity compensation until the base calibration is complete.
+- Watch live readings and calibrate only after the values stabilize.
+
+### Why The Default Compensation Matters
+
+With the default compensation state, the atmospheric high-point calibration has a known expected value of about `9.09 mg/L`. Once you add custom compensation, the "correct" post-calibration value becomes application-specific and much harder to verify.
+
+### Step-By-Step Procedure
+
+#### Step 1: Low-Point Calibration
+
+1. Place the probe in a zero dissolved oxygen solution.
+2. Stir or move the probe enough to release trapped air, since trapped air can push the reading artificially high.
+3. Continue reading until the value reaches zero, or until you have waited as long as the vendor guidance allows for your situation.
+4. Issue `Cal,0`.
+
+The vendor guidance is unusually specific here:
+
+- a new probe usually reaches zero in a few minutes
+- if it has not reached zero after about `4 hours`, calibrate to zero anyway
+- after a fresh electrolyte refill, reaching zero may take several hours
+- if it still has not reached zero after about `12 hours` in that post-refill case, calibrate to zero anyway
+
+#### Step 2: High-Point Atmospheric Calibration
+
+1. Expose the probe to air.
+2. Wait until the reading stabilizes; vendor guidance treats roughly `5` to `30` seconds as typical.
+3. Issue `Cal`.
+4. With default compensation values still in place, confirm that the final reading settles around `9.09` to `9.1x mg/L`.
+
+### Advanced Temperature Recalibration
+
+Probe temperature recalibration is not the same thing as changing the temperature-compensation setting. The vendor guidance is:
+
+1. complete the normal calibration first
+2. move the probe to its real operating temperature
+3. let it acclimate for about `10 minutes`
+4. rerun the atmospheric `Cal` step at that operating temperature
+
+This is only needed when the operating temperature is materially different from the temperature where the probe was last calibrated.
+
+### What "Stabilized" Means
+
+DO calibration is extremely sensitive to blind calibration. If the reading is still walking when you issue `Cal` or `Cal,0`, the post-calibration output will drift instead of staying fixed.
+
 ## Timing Notes
 
 The generic repo read hint is conservative for normal DO reads. Calibration and compensation changes should still be treated as command-specific operations rather than inferred from the measurement timing alone.
@@ -65,3 +141,10 @@ The current typed DO module now owns:
 - calibration query/set/clear helpers
 
 Application code should still treat DO payload shape as configuration-dependent unless output configuration is controlled explicitly.
+
+## Repo Entry Points
+
+- Linux staged examples: `examples/linux/i2c/advanced/do_calibration.c` and `examples/linux/uart/advanced/do_calibration.c`
+- Arduino staged example: `examples/arduino/i2c/advanced/do_calibration/do_calibration.ino`
+- Compensation workflows: `examples/linux/i2c/advanced/do_workflow.c`, `examples/linux/uart/advanced/do_workflow.c`, `examples/linux/i2c/advanced/do_full_compensation_chain.c`, `examples/linux/uart/advanced/do_full_compensation_chain.c`, and the matching Arduino I2C examples
+- Calibration transfer helpers: `src/ezo_calibration_transfer.h`

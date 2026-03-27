@@ -1,6 +1,6 @@
 # EZO Documentation
 
-> Notice: This subtree is original repo-authored documentation informed by Atlas Scientific product documentation. It is not an official Atlas Scientific manual and intentionally omits copied tables, hardware walkthroughs, and exhaustive command listings.
+> Notice: This subtree is original repo-authored documentation informed by Atlas Scientific product documentation. It is not an official Atlas Scientific manual and intentionally avoids copied vendor tables, diagrams, and page structure.
 
 ## Purpose
 
@@ -60,4 +60,4 @@ Use the official Atlas Scientific materials for:
 - full command syntax
 - wiring and soldering instructions
 - hardware recovery procedures
-- exhaustive operational workflows
+- workflows outside the supported repo surface

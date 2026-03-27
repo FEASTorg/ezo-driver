@@ -45,6 +45,48 @@ The recall surface is split into:
 - bulk `M,all` history recall as a CSV list of stored temperatures
 - memory-clear control
 
+## Calibration Procedure
+
+### Calibration Model
+
+RTD uses a single-point offset calibration:
+
+- `Cal,t`
+- `Cal,clear`
+- `Cal,?`
+
+`Cal,?` reports:
+
+- `?Cal,0` = not calibrated
+- `?Cal,1` = calibrated
+
+Plan on about `600 ms` for `Cal,t` and about `300 ms` for `Cal,clear` and `Cal,?`.
+
+### Before You Begin
+
+- The easiest workflow is UART mode with live continuous readings, or an I2C workflow that repeatedly requests readings so you can watch the value settle.
+- Switching protocols after calibration does not affect the stored RTD calibration.
+- If you use the common boiling-water method, use purified or distilled water.
+- Do not assume the boiling point is always exactly `100.0 C`; account for local elevation or pressure.
+- If you need a high-accuracy point other than the local boiling point, use a dry block calibrator rather than guessing from ambient conditions.
+
+### Step-By-Step Procedure
+
+1. Place the RTD probe in a known temperature environment.
+2. Wait until the reading has fully stabilized.
+3. Issue `Cal,<known temperature>`.
+4. Confirm that subsequent readings settle on the reference temperature.
+
+The simplest field method in the vendor material is boiling-water calibration using the correct local boiling point. At sea level that is `100.0 C`, but the setpoint should be adjusted if the actual boiling point differs at your elevation.
+
+### What "Stabilized" Means
+
+RTD follows the same "never do a blind calibration" rule as the other products. If the command is sent while the reading is still moving, the calibrated result will drift instead of landing cleanly on the target temperature.
+
+### Calibration Interval
+
+Vendor guidance is unusually explicit here: recalibration is generally recommended about every three years rather than on every maintenance cycle.
+
 ## Timing Notes
 
 The generic repo read hint is conservative for RTD and broadly safe across the vendor timing views. Logger and memory operations should still be treated as their own product behaviors rather than folded into the normal read path.
@@ -59,3 +101,9 @@ The current typed RTD module now groups:
 - sequential memory recall, bulk memory recall, and clear
 
 RTD is still simpler than EC, DO, and HUM from a parsing perspective, but broader from a device-feature perspective.
+
+## Repo Entry Points
+
+- Linux staged examples: `examples/linux/i2c/advanced/rtd_calibration.c` and `examples/linux/uart/advanced/rtd_calibration.c`
+- Arduino staged example: `examples/arduino/i2c/advanced/rtd_calibration/rtd_calibration.ino`
+- Calibration transfer helpers: `src/ezo_calibration_transfer.h`

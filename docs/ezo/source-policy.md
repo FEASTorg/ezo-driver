@@ -24,7 +24,8 @@ When adding or updating EZO docs in this repo:
 2. organize material around repo concerns, not vendor section order
 3. keep common transport behavior separate from product behavior
 4. summarize only the facts needed to use, extend, or test this driver
-5. point readers to official vendor documentation when a full procedure matters
+5. write full repo-authored calibration procedures when they are part of the supported product surface and example guidance
+6. point readers to official vendor documentation when a full hardware or recovery procedure matters
 
 ## Prohibited Practices
 
@@ -32,7 +33,7 @@ Do not:
 
 1. copy vendor tables, diagrams, or page structure
 2. reproduce long command catalogs or full quick-reference pages
-3. restate full calibration, recovery, or hardware-switch procedures
+3. restate vendor calibration, recovery, or hardware-switch procedures verbatim
 4. present these docs as official Atlas Scientific documentation
 5. move vendor source material into this repo as "docs"
 
@@ -48,6 +49,11 @@ Using factual product information is expected. The safe form is a curated summar
 - protocol deltas that affect driver design
 
 Prefer prose and short lists over copied tabular layouts.
+Repo-authored command summaries, status-value mappings, and calibration walkthroughs are allowed when they are:
+
+- written in original repo language
+- narrower than the full vendor manual
+- tied directly to the supported helpers and examples in this repo
 
 ## Citation And Provenance Style
 

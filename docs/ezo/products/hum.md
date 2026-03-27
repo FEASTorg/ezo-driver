@@ -43,6 +43,52 @@ The documented output-config query reply uses the alternate vendor form `?,O,...
 
 The product is factory calibrated, but the onboard temperature-calibration path still matters because humidity interpretation is temperature-sensitive. The current helper treats temperature calibration as a product-specific operation, not as a generic calibration abstraction.
 
+## Calibration Procedure
+
+### Calibration Model
+
+HUM is different from the other supported products:
+
+- the humidity sensor is factory calibrated
+- the user-facing calibration path is `Tcal`, which adjusts the onboard temperature sensor rather than running a classical multi-point humidity calibration
+
+The command surface is:
+
+- `Tcal,t`
+- `Tcal,clear`
+- `Tcal,?`
+
+`Tcal,?` reports:
+
+- `?Tcal,0` = no custom temperature calibration
+- `?Tcal,1` = custom temperature calibration present
+
+The documented I2C processing delay for this family is `300 ms`.
+
+### Before You Begin
+
+- Treat `Tcal` as a correction for the onboard temperature sensor, not as a general humidity recalibration command.
+- Use a trusted temperature reference near the sensor.
+- Let the HUM device and the reference reach the same thermal environment before you calibrate.
+- Do not use `Tcal` casually. Because humidity calculation depends strongly on temperature, the right time to use it is when you have evidence that the onboard temperature reading is consistently offset from a better reference.
+
+### Step-By-Step Procedure
+
+1. Place the HUM device and a trusted temperature reference together in the same stable environment.
+2. Wait until both readings have stabilized at the same ambient condition.
+3. Read the trusted reference temperature.
+4. Issue `Tcal,<reference temperature>` using that known value.
+5. Confirm the command succeeds and that later temperature reads line up with the reference more closely.
+
+### Clear And Query
+
+- Use `Tcal,?` to check whether a custom temperature calibration is present.
+- Use `Tcal,clear` if you need to remove the custom correction and return to the factory baseline.
+
+### Scope Warning
+
+This calibration path exists because humidity is temperature-sensitive. It does not mean the device expects routine user humidity calibration in the same way pH, ORP, EC, DO, or RTD do.
+
 ## Timing Notes
 
 HUM is the strongest example of a transport-specific timing difference in the current product set:
@@ -61,3 +107,8 @@ The current typed HUM module now owns:
 - temperature-calibration helpers
 
 It should also keep application writers aware that enclosure heat and board temperature can materially affect readings, even though those environment concerns sit outside the transport layer itself.
+
+## Repo Entry Points
+
+- Linux staged examples: `examples/linux/i2c/advanced/hum_temperature_calibration.c` and `examples/linux/uart/advanced/hum_temperature_calibration.c`
+- Arduino staged example: `examples/arduino/i2c/advanced/hum_temperature_calibration/hum_temperature_calibration.ino`
