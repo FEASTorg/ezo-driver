@@ -4,7 +4,7 @@
 #include <string.h>
 
 enum {
-  EZO_I2C_MAX_TEXT_FRAME_LEN = EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN + 1,
+  EZO_I2C_MAX_TEXT_FRAME_LEN = EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN + 2,
   EZO_I2C_MAX_RAW_FRAME_LEN = EZO_I2C_MAX_RESPONSE_PAYLOAD_LEN + 2
 };
 
@@ -306,7 +306,10 @@ ezo_result_t ezo_read_response(ezo_i2c_device_t *device,
     return EZO_ERR_INVALID_ARGUMENT;
   }
 
-  frame_len = buffer_len;
+  frame_len = buffer_len + 1;
+  if (frame_len > sizeof(frame)) {
+    frame_len = sizeof(frame);
+  }
   memset(frame, 0, frame_len);
   memset(buffer, 0, buffer_len);
   *response_len = 0;
