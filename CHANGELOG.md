@@ -4,6 +4,14 @@ All notable tracked changes to this rewrite will be recorded here.
 
 ## [Unreleased]
 
+## [0.5.0]
+
+### Fixed
+
+- accept observed uppercase DO output-query payloads such as `?O,MG` in typed output-config parsing
+- accept DO output-query variants with explicit enable flags such as `?O,MG,1,%,0`, enabling only the marked outputs
+- add DO unit coverage for uppercase and flag-bearing output-query variants to prevent regressions
+
 ## [0.4.2]
 
 ### Fixed
