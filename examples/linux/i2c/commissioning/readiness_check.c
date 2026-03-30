@@ -6,9 +6,9 @@ Next: jump to ../typed/read_<product>.c for a simple read or ../advanced/ for st
 */
 
 #include "example_base.h"
+#include "example_control.h"
 #include "example_i2c.h"
 
-#include "ezo_control.h"
 #include "ezo_do.h"
 #include "ezo_ec.h"
 #include "ezo_hum.h"
@@ -163,53 +163,6 @@ static void print_product_metadata(const ezo_product_metadata_t *metadata) {
   printf("i2c_timing_read_with_temp_comp_ms=%u\n",
          (unsigned)metadata->i2c_timing.read_with_temp_comp_ms);
   printf("i2c_timing_calibration_ms=%u\n", (unsigned)metadata->i2c_timing.calibration_ms);
-}
-
-static ezo_result_t query_info_i2c(ezo_i2c_device_t *device, ezo_device_info_t *info_out) {
-  ezo_timing_hint_t hint;
-  ezo_result_t result = EZO_OK;
-
-  if (device == NULL || info_out == NULL) {
-    return EZO_ERR_INVALID_ARGUMENT;
-  }
-
-  result = ezo_control_send_info_query_i2c(device, EZO_PRODUCT_UNKNOWN, &hint);
-  if (result != EZO_OK) {
-    return result;
-  }
-
-  ezo_example_wait_hint(&hint);
-  return ezo_control_read_info_i2c(device, info_out);
-}
-
-static ezo_result_t print_shared_control_i2c(ezo_i2c_device_t *device,
-                                             ezo_product_id_t product_id) {
-  ezo_timing_hint_t hint;
-  ezo_control_name_t name;
-  ezo_control_status_t status;
-  ezo_control_led_status_t led;
-  ezo_control_protocol_lock_status_t protocol_lock;
-  ezo_result_t result = EZO_OK;
-
-  if (device == NULL) {
-    return EZO_ERR_INVALID_ARGUMENT;
-  }
-
-  I2C_QUERY(ezo_control_send_name_query_i2c(device, product_id, &hint),
-            ezo_control_read_name_i2c(device, &name));
-  I2C_QUERY(ezo_control_send_status_query_i2c(device, product_id, &hint),
-            ezo_control_read_status_i2c(device, &status));
-  I2C_QUERY(ezo_control_send_led_query_i2c(device, product_id, &hint),
-            ezo_control_read_led_i2c(device, &led));
-  I2C_QUERY(ezo_control_send_protocol_lock_query_i2c(device, product_id, &hint),
-            ezo_control_read_protocol_lock_i2c(device, &protocol_lock));
-
-  printf("device_name=%s\n", name.name);
-  printf("restart_code=%c\n", status.restart_code);
-  printf("supply_voltage_v=%.3f\n", status.supply_voltage);
-  printf("led_enabled=%u\n", (unsigned)led.enabled);
-  printf("protocol_lock_enabled=%u\n", (unsigned)protocol_lock.enabled);
-  return EZO_OK;
 }
 
 static ezo_result_t print_product_readiness_i2c(ezo_i2c_device_t *device,
@@ -374,7 +327,7 @@ int main(int argc, char **argv) {
     return ezo_example_print_error("open_i2c", result);
   }
 
-  result = query_info_i2c(&session.device, &info);
+  result = ezo_example_query_info_i2c(&session.device, &info);
   if (result != EZO_OK) {
     ezo_example_close_i2c(&session);
     return ezo_example_print_error("query_info", result);
@@ -389,7 +342,7 @@ int main(int argc, char **argv) {
   print_device_info(&info);
   print_product_metadata(metadata);
 
-  result = print_shared_control_i2c(&session.device, info.product_id);
+  result = ezo_example_print_shared_control_i2c(&session.device, info.product_id);
   if (result == EZO_OK) {
     result = print_product_readiness_i2c(&session.device, info.product_id);
   }
