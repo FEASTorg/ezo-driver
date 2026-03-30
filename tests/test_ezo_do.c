@@ -47,6 +47,8 @@ static void test_parse_helpers_cover_reading_output_config_and_queries(void) {
 
   assert(ezo_do_parse_calibration_status("?Cal,2", strlen("?Cal,2"), &calibration) == EZO_OK);
   assert(calibration.level == 2U);
+  assert(ezo_do_parse_calibration_status("?CAL,1", strlen("?CAL,1"), &calibration) == EZO_OK);
+  assert(calibration.level == 1U);
 }
 
 static void test_command_builders_format_expected_commands(void) {

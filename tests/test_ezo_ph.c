@@ -20,6 +20,8 @@ static void test_parse_helpers_cover_reading_and_queries(void) {
 
   assert(ezo_ph_parse_calibration_status("?Cal,2", strlen("?Cal,2"), &calibration) == EZO_OK);
   assert(calibration.level == EZO_PH_CALIBRATION_TWO_POINT);
+  assert(ezo_ph_parse_calibration_status("?CAL,1", strlen("?CAL,1"), &calibration) == EZO_OK);
+  assert(calibration.level == EZO_PH_CALIBRATION_ONE_POINT);
 
   assert(ezo_ph_parse_slope("?Slope,99.7,100.3,-0.89",
                             strlen("?Slope,99.7,100.3,-0.89"),

@@ -15,6 +15,8 @@ static void test_parse_helpers_cover_reading_and_queries(void) {
 
   assert(ezo_orp_parse_calibration_status("?Cal,1", strlen("?Cal,1"), &calibration) == EZO_OK);
   assert(calibration.calibrated == 1);
+  assert(ezo_orp_parse_calibration_status("?CAL,1", strlen("?CAL,1"), &calibration) == EZO_OK);
+  assert(calibration.calibrated == 1);
 
   assert(ezo_orp_parse_extended_scale("?ORPext,0", strlen("?ORPext,0"), &extended) == EZO_OK);
   assert(extended.enabled == EZO_ORP_EXTENDED_SCALE_DISABLED);

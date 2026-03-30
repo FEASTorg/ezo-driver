@@ -27,6 +27,8 @@ static void test_parse_helpers_cover_reading_and_queries(void) {
 
   assert(ezo_rtd_parse_calibration_status("?Cal,1", strlen("?Cal,1"), &calibration) == EZO_OK);
   assert(calibration.calibrated == 1);
+  assert(ezo_rtd_parse_calibration_status("?CAL,1", strlen("?CAL,1"), &calibration) == EZO_OK);
+  assert(calibration.calibrated == 1);
 
   assert(ezo_rtd_parse_logger_status("?D,6", strlen("?D,6"), &logger) == EZO_OK);
   assert(logger.interval_units == 6U);

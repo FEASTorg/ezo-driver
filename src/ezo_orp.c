@@ -148,6 +148,9 @@ ezo_result_t ezo_orp_parse_calibration_status(
 
   result = ezo_parse_prefixed_fields(buffer, buffer_len, "?Cal", fields, 1, &field_count);
   if (result != EZO_OK) {
+    result = ezo_parse_prefixed_fields(buffer, buffer_len, "?CAL", fields, 1, &field_count);
+  }
+  if (result != EZO_OK) {
     return result;
   }
 
