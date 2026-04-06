@@ -139,6 +139,25 @@ static void run_workflow() {
   }
   if (CALIBRATION_STEP != STEP_STATUS) {
     ezo_arduino_wait_hint(&hint);
+
+    EZO_ARDUINO_CHECK_OK("send_post_calibration_query",
+                         ezo_ph_send_calibration_query_i2c(&device, &hint));
+    ezo_arduino_wait_hint(&hint);
+    EZO_ARDUINO_CHECK_OK("read_post_calibration_query",
+                         ezo_ph_read_calibration_status_i2c(&device, &calibration));
+
+    EZO_ARDUINO_CHECK_OK("send_post_slope_query", ezo_ph_send_slope_query_i2c(&device, &hint));
+    ezo_arduino_wait_hint(&hint);
+    EZO_ARDUINO_CHECK_OK("read_post_slope_query", ezo_ph_read_slope_i2c(&device, &slope));
+
+    Serial.print(F("post_calibration_level="));
+    Serial.println(ezo_arduino_ph_calibration_name(calibration.level));
+    Serial.print(F("post_slope_acid_percent="));
+    Serial.println(slope.acid_percent, 3);
+    Serial.print(F("post_slope_base_percent="));
+    Serial.println(slope.base_percent, 3);
+    Serial.print(F("post_slope_neutral_mv="));
+    Serial.println(slope.neutral_mv, 3);
   }
 }
 

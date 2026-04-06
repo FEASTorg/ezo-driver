@@ -1,7 +1,7 @@
 /*
 Purpose: stage D.O. zero/high calibration with explicit compensation-state inspection.
-Defaults: Wire on the board default pins, address 97, status step, and default atmospheric pressure.
-Assumptions: compensation values stay at vendor defaults during calibration and the probe is in the correct calibration environment.
+Defaults: Wire on the board default pins, address 97, and status step.
+Assumptions: compensation values stay at the vendor calibration defaults of 20.0 C, 0.0 salinity, and 101.0 kPa while calibrating.
 Next: read ../do_workflow/do_workflow.ino for temperature, salinity, and pressure compensation state.
 */
 
@@ -30,6 +30,20 @@ static uint8_t calibration_done = 0U;
 
 static ezo_do_calibration_point_t calibration_point() {
   return CALIBRATION_STEP == STEP_ZERO ? EZO_DO_CALIBRATION_ZERO : EZO_DO_CALIBRATION_ATMOSPHERIC;
+}
+
+static const __FlashStringHelper *step_name() {
+  switch (CALIBRATION_STEP) {
+    case STEP_ZERO:
+      return F("low");
+    case STEP_HIGH:
+      return F("high");
+    case STEP_CLEAR:
+      return F("clear");
+    case STEP_STATUS:
+    default:
+      return F("status");
+  }
 }
 
 static void preview_readings() {
@@ -84,6 +98,8 @@ static void run_workflow() {
   Serial.println(F("transport=i2c"));
   Serial.print(F("address="));
   Serial.println(DEVICE_I2C_ADDRESS);
+  Serial.print(F("step="));
+  Serial.println(step_name());
   Serial.print(F("current_temperature_compensation_c="));
   Serial.println(temperature.temperature_c, 3);
   Serial.print(F("current_salinity_value="));
@@ -95,6 +111,11 @@ static void run_workflow() {
   Serial.print(F("current_calibration_level="));
   Serial.println((unsigned long)calibration.level);
   Serial.println(F("vendor_guidance_calibrate_before_compensating=1"));
+  Serial.println(F("vendor_guidance_low_point_before_high_point=1"));
+  Serial.println(F("vendor_guidance_default_compensation_values_required=1"));
+  Serial.println(F("vendor_default_temperature_c=20.000"));
+  Serial.println(F("vendor_default_salinity_ppt=0.000"));
+  Serial.println(F("vendor_default_pressure_kpa=101.000"));
   Serial.print(F("apply_changes="));
   Serial.println((unsigned)APPLY_CHANGES);
 
@@ -115,6 +136,23 @@ static void run_workflow() {
   }
   if (CALIBRATION_STEP != STEP_STATUS) {
     ezo_arduino_wait_hint(&hint);
+
+    EZO_ARDUINO_CHECK_OK("send_post_temperature_query",
+                         ezo_do_send_temperature_query_i2c(&device, &hint));
+    ezo_arduino_wait_hint(&hint);
+    EZO_ARDUINO_CHECK_OK("read_post_temperature_query",
+                         ezo_do_read_temperature_i2c(&device, &temperature));
+
+    EZO_ARDUINO_CHECK_OK("send_post_calibration_query",
+                         ezo_do_send_calibration_query_i2c(&device, &hint));
+    ezo_arduino_wait_hint(&hint);
+    EZO_ARDUINO_CHECK_OK("read_post_calibration_query",
+                         ezo_do_read_calibration_status_i2c(&device, &calibration));
+
+    Serial.print(F("post_temperature_compensation_c="));
+    Serial.println(temperature.temperature_c, 3);
+    Serial.print(F("post_calibration_level="));
+    Serial.println((unsigned long)calibration.level);
   }
 }
 
