@@ -53,6 +53,7 @@ ezo_result_t ezo_example_print_shared_control_i2c(ezo_i2c_device_t *device,
   ezo_control_led_status_t led;
   ezo_control_protocol_lock_status_t protocol_lock;
   ezo_result_t result = EZO_OK;
+  ezo_result_t first_error = EZO_OK;
   int shared_control_complete = 1;
 
   if (device == NULL) {
@@ -64,6 +65,7 @@ ezo_result_t ezo_example_print_shared_control_i2c(ezo_i2c_device_t *device,
     printf("device_name=%s\n", name.name);
   } else {
     shared_control_complete = 0;
+    first_error = result;
     ezo_example_print_shared_control_result("shared_control_name_query", result);
   }
 
@@ -77,6 +79,9 @@ ezo_result_t ezo_example_print_shared_control_i2c(ezo_i2c_device_t *device,
     printf("supply_voltage_v=%.3f\n", status.supply_voltage);
   } else {
     shared_control_complete = 0;
+    if (first_error == EZO_OK) {
+      first_error = result;
+    }
     ezo_example_print_shared_control_result("shared_control_status_query", result);
   }
 
@@ -89,6 +94,9 @@ ezo_result_t ezo_example_print_shared_control_i2c(ezo_i2c_device_t *device,
     printf("led_enabled=%u\n", (unsigned)led.enabled);
   } else {
     shared_control_complete = 0;
+    if (first_error == EZO_OK) {
+      first_error = result;
+    }
     ezo_example_print_shared_control_result("shared_control_led_query", result);
   }
 
@@ -101,9 +109,12 @@ ezo_result_t ezo_example_print_shared_control_i2c(ezo_i2c_device_t *device,
     printf("protocol_lock_enabled=%u\n", (unsigned)protocol_lock.enabled);
   } else {
     shared_control_complete = 0;
+    if (first_error == EZO_OK) {
+      first_error = result;
+    }
     ezo_example_print_shared_control_result("shared_control_protocol_lock_query", result);
   }
 
   printf("shared_control_complete=%u\n", (unsigned)(shared_control_complete != 0));
-  return EZO_OK;
+  return first_error;
 }
