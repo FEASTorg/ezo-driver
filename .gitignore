@@ -16,6 +16,10 @@ Thumbs.db
 # build
 build/
 build*/
+build-*/
+
+# codex
+.codex/
 
 # Ignore the planning directory, which contains files related
 # to project planning and personal notes that dont need to 
