@@ -1,6 +1,6 @@
 /*
 Purpose: stage HUM temperature calibration while keeping humidity calibration vendor-default.
-Defaults: Wire on the board default pins, address 111, and reference temperature 25.0 C.
+Defaults: Wire on the board default pins, address 111, status step, and reference temperature 25.0 C.
 Assumptions: humidity is factory calibrated and only temperature calibration is being adjusted here.
 Next: read ../hum_workflow/hum_workflow.ino for output-selection state and live readings.
 */

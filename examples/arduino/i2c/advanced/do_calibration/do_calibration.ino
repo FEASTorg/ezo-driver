@@ -1,6 +1,6 @@
 /*
 Purpose: stage D.O. zero/high calibration with explicit compensation-state inspection.
-Defaults: Wire on the board default pins, address 97, and status step.
+Defaults: Wire on the board default pins, address 97, status step, and vendor-default compensation values.
 Assumptions: compensation values stay at the vendor calibration defaults of 20.0 C, 0.0 salinity, and 101.0 kPa while calibrating.
 Next: read ../do_workflow/do_workflow.ino for temperature, salinity, and pressure compensation state.
 */

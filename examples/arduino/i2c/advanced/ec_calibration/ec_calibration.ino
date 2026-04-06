@@ -1,6 +1,6 @@
 /*
 Purpose: stage EC dry/single/low/high calibration with explicit probe-K and temperature-state inspection.
-Defaults: Wire on the board default pins, address 100, dry step, probe K 1.0, and reference 84.0 uS.
+Defaults: Wire on the board default pins, address 100, status step, probe K 1.0, and reference 84.0 uS.
 Assumptions: dry calibration happens first and temperature compensation remains at the vendor default during calibration.
 Next: read ../ec_workflow/ec_workflow.ino for output selection, probe-K, and TDS-factor state.
 */

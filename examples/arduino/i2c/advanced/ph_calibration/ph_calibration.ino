@@ -1,6 +1,6 @@
 /*
 Purpose: stage pH calibration steps with bounded preview reads and explicit vendor ordering notes.
-Defaults: Wire on the board default pins, address 99, midpoint step, and reference 7.00.
+Defaults: Wire on the board default pins, address 99, status step, and reference 7.00.
 Assumptions: the probe is in the matching calibration solution before `APPLY_CHANGES` is enabled.
 Next: read ../ph_workflow/ph_workflow.ino for operational temperature-compensation and range state.
 */

@@ -1,6 +1,6 @@
 /*
 Purpose: stage RTD single-point offset calibration.
-Defaults: Wire on the board default pins, address 102, and reference temperature 25.0 C.
+Defaults: Wire on the board default pins, address 102, status step, and reference temperature 25.0 C.
 Assumptions: the attached RTD probe is in a stable reference environment before `APPLY_CHANGES` is enabled.
 Next: read ../rtd_workflow/rtd_workflow.ino for scale, logger, and memory state.
 */

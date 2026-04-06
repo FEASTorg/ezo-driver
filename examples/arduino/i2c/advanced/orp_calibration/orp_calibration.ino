@@ -1,6 +1,6 @@
 /*
 Purpose: stage ORP single-point calibration with bounded preview reads.
-Defaults: Wire on the board default pins, address 98, and reference 225 mV.
+Defaults: Wire on the board default pins, address 98, status step, and reference 225 mV.
 Assumptions: the probe is in the matching ORP calibration solution before `APPLY_CHANGES` is enabled.
 Next: read ../orp_workflow/orp_workflow.ino for extended-scale state and ongoing reads.
 */
