@@ -35,21 +35,11 @@ static void reset_test_state(void) {
   g_uart_state.open_result = EZO_OK;
 }
 
-int ezo_fake_open(const char *path, int flags, ...) {
-  g_i2c_io.open_call_count += 1;
-  g_i2c_io.last_flags = flags;
-  strncpy(g_i2c_io.last_path, path, sizeof(g_i2c_io.last_path) - 1);
-  if (g_i2c_io.open_result < 0) {
-    return g_i2c_io.open_result;
-  }
-  return g_i2c_io.next_fd;
-}
-
-int ezo_fake_close(int fd) {
-  g_i2c_io.close_call_count += 1;
-  g_i2c_io.last_closed_fd = fd;
-  return g_i2c_io.close_result;
-}
+/* Forward declarations only - definitions appear after the seam include
+ * to avoid GCC 13 'redefinition' error when #define open ezo_fake_open
+ * is processed while a prior definition is already in scope. */
+int ezo_fake_open(const char *path, int flags, ...);
+int ezo_fake_close(int fd);
 
 static ezo_result_t test_uart_write_bytes(void *context,
                                           const uint8_t *tx_data,
@@ -128,6 +118,22 @@ const ezo_uart_transport_t *test_ezo_uart_posix_serial_transport(void) {
 #undef ezo_uart_posix_serial_open
 #undef close
 #undef open
+
+int ezo_fake_open(const char *path, int flags, ...) {
+  g_i2c_io.open_call_count += 1;
+  g_i2c_io.last_flags = flags;
+  strncpy(g_i2c_io.last_path, path, sizeof(g_i2c_io.last_path) - 1);
+  if (g_i2c_io.open_result < 0) {
+    return g_i2c_io.open_result;
+  }
+  return g_i2c_io.next_fd;
+}
+
+int ezo_fake_close(int fd) {
+  g_i2c_io.close_call_count += 1;
+  g_i2c_io.last_closed_fd = fd;
+  return g_i2c_io.close_result;
+}
 
 static void test_i2c_open_path_initializes_device_and_close_releases_fd(void) {
   ezo_linux_i2c_device_t device;
