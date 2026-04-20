@@ -9,6 +9,7 @@ project(
 
 include(CTest)
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 option(EZO_BUILD_TESTS "Build unit tests" OFF)
 option(EZO_BUILD_EXAMPLES "Build examples" OFF)
@@ -763,4 +764,24 @@ install(EXPORT ezo_driver_targets
   FILE ezo_driver_targets.cmake
   NAMESPACE ezo::
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ezo_driver
+)
+
+set(EZO_DRIVER_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/ezo_driver)
+
+configure_package_config_file(
+  cmake/ezo_driverConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/ezo_driverConfig.cmake
+  INSTALL_DESTINATION ${EZO_DRIVER_CONFIG_INSTALL_DIR}
+)
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/ezo_driverConfigVersion.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion
+)
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/ezo_driverConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/ezo_driverConfigVersion.cmake
+  DESTINATION ${EZO_DRIVER_CONFIG_INSTALL_DIR}
 )
